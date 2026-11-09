@@ -28,7 +28,7 @@ Primavera P6 schedule analysis and management reporting.
 
 ## Languages
 - English and Arabic (right-to-left), switch in the top bar; the choice is remembered.
-  Default follows the browser language. English text is the key (`t('...')` in `src/i18n.tsx`);
+  English is the default. English text is the key (`t('...')` in `src/i18n.tsx`);
   the Arabic text is in `src/ar.ts`. `test/i18n.test.ts` fails if any interface text has no
   Arabic translation. The Arabic font (IBM Plex Sans Arabic) is embedded, so the page still needs
   no network access. The delay report Excel file stays in English.

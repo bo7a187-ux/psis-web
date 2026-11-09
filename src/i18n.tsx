@@ -14,7 +14,7 @@ function initial(): Lang {
     const s = localStorage.getItem(KEY);
     if (s === 'ar' || s === 'en') return s;
   } catch { /* storage blocked */ }
-  return typeof navigator !== 'undefined' && /^ar\b/i.test(navigator.language ?? '') ? 'ar' : 'en';
+  return 'en'; // English by default; the العربية button switches and the choice is remembered
 }
 
 let current: Lang = initial();
