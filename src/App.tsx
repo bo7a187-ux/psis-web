@@ -86,6 +86,7 @@ export function App() {
           <span>{t("Runs only in this browser. Your schedule data is never uploaded.")}{!app.persisted && app.ready && <em>{t("Storage is not marked as persistent - keep a backup file.")}</em>}
           </span>
         </div>
+        <div className="credit">{t('by Hussain Alshaikh')}</div>
       </aside>
       <div className="main">
         <div className="topbar">
@@ -105,6 +106,7 @@ export function App() {
         </div>
         <div className="content">
           {!app.ready ? <div className="muted">{t("Loading…")}</div> : <Router page={page} />}
+          <footer className="site-credit no-print">{t('by Hussain Alshaikh')}</footer>
         </div>
       </div>
     </div>

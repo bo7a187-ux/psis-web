@@ -349,6 +349,11 @@ details > summary { cursor: pointer; }
 @media screen and (max-width: 860px) { .rp-kpis { grid-template-columns: repeat(2, 1fr); } .rp-cols { grid-template-columns: 1fr; } }
 .rp-t.dates td:nth-child(2), .rp-t.dates td:nth-child(3) { white-space: nowrap; }
 
+/* ---------- credit ---------- */
+.credit { padding: 10px 8px 2px; font-size: 11.5px; font-weight: 600; color: #7d90b6; letter-spacing: .02em; }
+.site-credit { display: none; text-align: center; font-size: 12px; color: var(--ink-3); padding: 28px 0 0; }
+@media (max-width: 860px) { .site-credit { display: block; } }
+
 /* ---------- Arabic (right-to-left) ---------- */
 html[lang='ar'], html[lang='ar'] :root, html[lang='ar'] body, html[lang='ar'] button, html[lang='ar'] input, html[lang='ar'] select, html[lang='ar'] textarea { font-family: var(--font-ar); }
 html[lang='ar'] body { line-height: 1.6; }

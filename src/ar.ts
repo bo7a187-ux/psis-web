@@ -7,6 +7,7 @@ export const AR: Record<string, string> = {
   'Project Schedule Intelligence': 'محلّل الجداول الزمنية للمشاريع',
   'Schedule Intelligence': 'محلّل الجداول الزمنية',
   'P6 analysis & reporting': 'تحليل وتقارير بريمافيرا P6',
+  'by Hussain Alshaikh': 'تطوير: حسين الشيخ',
   'Home': 'الرئيسية',
   'Monthly workflow': 'الدورة الشهرية',
   'Reports': 'التقارير',
