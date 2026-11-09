@@ -4,8 +4,8 @@
  */
 export const AR: Record<string, string> = {
   // ---------- shell & navigation
-  'Project Schedule Intelligence': 'ذكاء الجدول الزمني للمشاريع',
-  'Schedule Intelligence': 'ذكاء الجدول الزمني',
+  'Project Schedule Intelligence': 'محلّل الجداول الزمنية للمشاريع',
+  'Schedule Intelligence': 'محلّل الجداول الزمنية',
   'P6 analysis & reporting': 'تحليل وتقارير بريمافيرا P6',
   'Home': 'الرئيسية',
   'Monthly workflow': 'الدورة الشهرية',
