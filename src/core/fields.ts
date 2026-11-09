@@ -85,3 +85,6 @@ export function headerUnit(...labels: string[]): 'Days' | 'Hours' | null {
   }
   return null;
 }
+
+/** Columns read by the schedule quality checks (not activity fields): not reported as unused. */
+export const QUALITY_HEADERS = ['Primary Constraint', 'cstr_type', 'Primary Constraint Date', 'cstr_date', 'Secondary Constraint', 'cstr_type2', 'Secondary Constraint Date', 'cstr_date2'];

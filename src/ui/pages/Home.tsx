@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../../state';
 import { ProjectDialogs, useStepState, type Ask } from '../../App';
 import { BackupCard } from '../BackupCard';
+import { TEAM_FORM_URL, GOATCOUNTER_CODE } from '../../config';
 import { Icon, type IconName } from '../icons';
 import { pct, fd } from '../common';
 import { t, tr, getLang } from '../../i18n';
@@ -97,10 +98,20 @@ export function Home() {
         })}
       </div>
 
+      {TEAM_FORM_URL && (
+        <div className="card team-card">
+          <span className="phase-ico"><Icon name="users" size={18} /></span>
+          <div className="grow">
+            <h2>{t('Working as a team?')}</h2>
+            <p className="small muted">{t('A team version is planned: several people and devices on the same project, with roles for planners, reviewers and management. Leave your details and you will be told when it is ready.')}</p>
+          </div>
+          <a className="btn primary" href={TEAM_FORM_URL} target="_blank" rel="noopener noreferrer">{t("I'm interested")}</a>
+        </div>
+      )}
       <BackupCard />
       <div className="card small muted data-note">
         <Icon name="info" size={16} />
-        <span><b>{t("Where is my data?")}</b> {t("In this browser's local storage (IndexedDB) on this computer only. Clearing the browser's site data deletes it - use the backup above. The page is built so it cannot send data anywhere (no network connections are allowed).")}</span>
+        <span><b>{t("Where is my data?")}</b> {t("In this browser's local storage (IndexedDB) on this computer only. Clearing the browser's site data deletes it - use the backup above. The page is built so it cannot send data anywhere (no network connections are allowed).")}{GOATCOUNTER_CODE && ` ${t('Only an anonymous visit count is recorded: the page name, with no schedule data and no cookies.')}`}</span>
       </div>
     </>
   );

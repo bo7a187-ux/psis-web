@@ -18,12 +18,18 @@ ERMHDR	19.12	2026-11-08	Project	admin	Admin	dbxDatabaseNoName	Project Management
 %R	1	2	4521	7			125000	70000	5000	
 %R	2	2	4521	8			25000	10000	0	
 %R	3	3	4521	7			98000	0	0	
+%T	TASKPRED
+%F	task_pred_id	task_id	pred_task_id	proj_id	pred_proj_id	pred_type	lag_hr_cnt
+%R	1	2	1	4521	4521	PR_FS	0
+%R	2	3	2	4521	4521	PR_SS	40
+%R	3	4	3	4521	4521	PR_FS	-16
+%R	4	103	102	4600	4600	PR_FS	0
 %T	TASK
 %F	task_id	proj_id	wbs_id	clndr_id	phys_complete_pct	rev_fdbk_flag	est_wt	lock_plan_flag	auto_compute_act_flag	complete_pct_type	task_type	duration_type	status_code	task_code	task_name	rsrc_id	total_float_hr_cnt	free_float_hr_cnt	remain_drtn_hr_cnt	act_work_qty	remain_work_qty	target_work_qty	target_drtn_hr_cnt	target_equip_qty	act_equip_qty	remain_equip_qty	cstr_date	act_start_date	act_end_date	late_start_date	late_end_date	expect_end_date	early_start_date	early_end_date	restart_date	reend_date	target_start_date	target_end_date	rem_late_start_date	rem_late_end_date	cstr_type	priority_type	suspend_date	resume_date	float_path	float_path_order	guid	tmpl_guid	cstr_date2	cstr_type2	driving_path_flag	act_this_per_work_qty	act_this_per_equip_qty	external_early_start_date	external_late_end_date	create_date	update_date	create_user	update_user	location_id
 %R	1	4521	1	101	100	N	1	N	N	CP_Phys	TT_Mile	DT_FixedDrtn	TK_Complete	A1000	Mobilisation		0	0	0				0					2026-01-04 08:00	2026-01-04 08:00				2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00				PT_Normal									N									
 %R	2	4521	3	102	60	N	1	N	N	CP_Phys	TT_Task	DT_FixedDrtn	TK_Active	A1010	Excavation		-30	-30	60	1400	600	2000	200					2026-01-05 07:00					2026-02-15 07:00	2026-02-21 17:00	2026-02-15 07:00	2026-02-21 17:00	2026-01-05 07:00	2026-01-26 17:00				PT_Normal									Y									
-%R	3	4521	3	101	0	N	1	N	N	CP_Drtn	TT_Task	DT_FixedDrtn	TK_NotStart	A1020	Footings		100	100	120				120										2026-02-22 08:00	2026-03-11 17:00	2026-02-22 08:00	2026-03-11 17:00	2026-01-27 08:00	2026-02-13 17:00				PT_Normal									N									
-%R	4	4521	1	101	0	N	1	N	N	CP_Phys	TT_FinMile	DT_FixedDrtn	TK_NotStart	A1030	Handover		0	0	0				0										2026-03-20 17:00	2026-03-20 17:00	2026-03-20 17:00	2026-03-20 17:00	2026-03-01 17:00	2026-03-01 17:00				PT_Normal									Y									
+%R	3	4521	3	101	0	N	1	N	N	CP_Drtn	TT_Task	DT_FixedDrtn	TK_NotStart	A1020	Footings		100	100	120				120				2026-01-27 08:00						2026-02-22 08:00	2026-03-11 17:00	2026-02-22 08:00	2026-03-11 17:00	2026-01-27 08:00	2026-02-13 17:00			CS_MSOA	PT_Normal									N									
+%R	4	4521	1	101	0	N	1	N	N	CP_Phys	TT_FinMile	DT_FixedDrtn	TK_NotStart	A1030	Handover		0	0	0				0				2026-03-01 17:00						2026-03-20 17:00	2026-03-20 17:00	2026-03-20 17:00	2026-03-20 17:00	2026-03-01 17:00	2026-03-01 17:00			CS_MEOB	PT_Normal									Y									
 %R	5	4521	1	101	66	N	1	N	N	CP_Phys	TT_LOE	DT_FixedDrtn	TK_Active	A1040	Site Management		0	0	160				480					2026-01-04 08:00					2026-02-15 08:00	2026-03-20 17:00	2026-02-15 08:00	2026-03-20 17:00	2026-01-04 08:00	2026-03-01 17:00				PT_Normal									N									
 %R	6	4521	2	101	0	N	1	N	N	CP_Phys	TT_WBS	DT_FixedDrtn	TK_Active	WBS-CIV	Civil Works		0	0	0				0										2026-01-04 08:00	2026-03-11 17:00	2026-01-04 08:00	2026-03-11 17:00	2026-01-04 08:00	2026-03-11 17:00				PT_Normal									N									
 %R	101	4600	9	101	0	N	1	N	N	CP_Phys	TT_Mile	DT_FixedDrtn	TK_NotStart	A1000	Mobilisation		0	0	0				0										2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00	2026-01-04 08:00				PT_Normal									N									

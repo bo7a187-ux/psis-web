@@ -59,11 +59,18 @@ bl = [
     task(103, 4600, 9, 101, 'A1020', 'Footings', 'TT_Task', 'TK_NotStart', 120, 120, 0, '2026-01-25 08:00', '2026-02-11 17:00'),
     task(104, 4600, 9, 101, 'A1030', 'Handover', 'TT_FinMile', 'TK_NotStart', 0, 0, 0, '2026-02-28 17:00', '2026-02-28 17:00'),
 ]
+PRED_F = ['task_pred_id', 'task_id', 'pred_task_id', 'proj_id', 'pred_proj_id', 'pred_type', 'lag_hr_cnt']
+preds = [dict(task_pred_id=1, task_id=2, pred_task_id=1, proj_id=4521, pred_proj_id=4521, pred_type='PR_FS', lag_hr_cnt=0),
+         dict(task_pred_id=2, task_id=3, pred_task_id=2, proj_id=4521, pred_proj_id=4521, pred_type='PR_SS', lag_hr_cnt=40),
+         dict(task_pred_id=3, task_id=4, pred_task_id=3, proj_id=4521, pred_proj_id=4521, pred_type='PR_FS', lag_hr_cnt=-16),
+         dict(task_pred_id=4, task_id=103, pred_task_id=102, proj_id=4600, pred_proj_id=4600, pred_type='PR_FS', lag_hr_cnt=0)]
+cur[3]['cstr_type'] = 'CS_MEOB'; cur[3]['cstr_date'] = '2026-03-01 17:00'
+cur[2]['cstr_type'] = 'CS_MSOA'; cur[2]['cstr_date'] = '2026-01-27 08:00'
 rsrc = [dict(taskrsrc_id=1, task_id=2, proj_id=4521, rsrc_id=7, target_cost=125000, act_reg_cost=70000, act_ot_cost=5000),
         dict(taskrsrc_id=2, task_id=2, proj_id=4521, rsrc_id=8, target_cost=25000, act_reg_cost=10000, act_ot_cost=0),
         dict(taskrsrc_id=3, task_id=3, proj_id=4521, rsrc_id=7, target_cost=98000, act_reg_cost=0, act_ot_cost=0)]
 extra = table('PROJECT', PROJ_F, proj) + table('CALENDAR', CAL_F, cal) + table('PROJWBS', WBS_F, wbs)
-xer = build(cur + bl, extra + table('TASKRSRC', RSRC_F, rsrc))
+xer = build(cur + bl, extra + table('TASKRSRC', RSRC_F, rsrc) + table('TASKPRED', PRED_F, preds))
 open(f'{out}/sample.xer', 'w', encoding='utf-8', newline='\r\n').write(xer)
 
 # Arabic names, Windows-1256, no baseline project

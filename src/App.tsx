@@ -11,6 +11,8 @@ import { ResultsPage } from './ui/pages/ResultsPage';
 import { ExecutiveDashboardPage } from './ui/pages/ExecutiveDashboardPage';
 import { ScheduleControlPage } from './ui/pages/ScheduleControlPage';
 import { DelayAnalysisPage } from './ui/pages/DelayAnalysisPage';
+import { QualityPage } from './ui/pages/QualityPage';
+import { VisitCounter } from './ui/VisitCounter';
 import { HistoryPage } from './ui/pages/HistoryPage';
 import { BaselinesPage } from './ui/pages/BaselinesPage';
 import { ReportPage } from './ui/pages/ReportPage';
@@ -33,6 +35,7 @@ const REPORTS: { p: Page; label: string; icon: IconName }[] = [
   { p: 'exec', label: 'Executive dashboard', icon: 'gauge' },
   { p: 'control', label: 'Schedule control', icon: 'gantt' },
   { p: 'delay', label: 'Delay analysis', icon: 'clock' },
+  { p: 'quality', label: 'Schedule quality (DCMA)', icon: 'clipboard' },
   { p: 'history', label: 'History & snapshots', icon: 'history' },
   { p: 'baselines', label: 'Baselines', icon: 'flag' },
   { p: 'report', label: 'Monthly report (PDF)', icon: 'report' },
@@ -61,6 +64,7 @@ export function App() {
 
   return (
     <div className="app">
+      <VisitCounter page={page} />
       <aside className="side">
         <button className="brand" onClick={() => setPage('home')}>
           <BrandMark />
@@ -127,6 +131,7 @@ function Router({ page }: { page: Page }) {
     case 'exec': return <ExecutiveDashboardPage />;
     case 'control': return <ScheduleControlPage />;
     case 'delay': return <DelayAnalysisPage />;
+    case 'quality': return <QualityPage />;
     case 'audit': return <CalculationAuditPage />;
     case 'report': return <ReportPage />;
     case 'history': return <HistoryPage />;

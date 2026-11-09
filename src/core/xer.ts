@@ -70,7 +70,16 @@ export const XER_HEADERS = [
   '__BL_START__', '__BL_FINISH__', 'Start', 'Finish', 'Actual Start', 'Actual Finish',
   'Physical % Complete', 'Duration % Complete', 'Units % Complete', 'Activity % Complete',
   'Budgeted Total Cost', 'Actual Total Cost', 'Budgeted Labor Units', 'Actual Labor Units',
+  'Primary Constraint', 'Primary Constraint Date', 'Secondary Constraint', 'Secondary Constraint Date',
 ] as const;
+
+/** P6 constraint codes -> the names P6 shows. */
+export const CONSTRAINT: Record<string, string> = {
+  CS_MSO: 'Start On', CS_MSOA: 'Start On or After', CS_MSOB: 'Start On or Before',
+  CS_MEO: 'Finish On', CS_MEOA: 'Finish On or After', CS_MEOB: 'Finish On or Before',
+  CS_ALAP: 'As Late As Possible', CS_MANDSTART: 'Mandatory Start', CS_MANDFIN: 'Mandatory Finish',
+};
+const REL: Record<string, string> = { PR_FS: 'FS', PR_SS: 'SS', PR_FF: 'FF', PR_SF: 'SF' };
 
 export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData & { encoding: string; projects: string[]; baselineFound: boolean } {
   const { text, encoding } = decodeXer(bytes);
@@ -163,7 +172,19 @@ export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData
       d(start), d(finish), d(actStart), d(actFinish),
       pctText(phys), pctText(durPct), pctText(unitsPct), pctText(actPct),
       c ? c.budget : null, c ? c.actual : null, n(k.target_work_qty), aw,
+      CONSTRAINT[k.cstr_type] ?? (k.cstr_type || null), d(xerDate(k.cstr_date)),
+      CONSTRAINT[k.cstr_type2] ?? (k.cstr_type2 || null), d(xerDate(k.cstr_date2)),
     ]);
+  }
+
+  // Relationships (TASKPRED), named like the P6 Excel export; lag converted with the successor's calendar.
+  const byId = new Map(tasks.map((k) => [k.task_id, k]));
+  const predRows: Grid = [['Predecessor', 'Successor', 'Relationship Type', 'Lag(d)']];
+  for (const r of t.TASKPRED ?? []) {
+    const s = byId.get(r.task_id), pr = byId.get(r.pred_task_id);
+    if (!s || !pr || !reportIds.has(s.proj_id)) continue;
+    const h = hpd.get(s.clndr_id) ?? hoursPerDayDefault;
+    predRows.push([pr.task_code, s.task_code, REL[r.pred_type] ?? r.pred_type, round(n(r.lag_hr_cnt) == null ? 0 : n(r.lag_hr_cnt)! / h)]);
   }
   const header = XER_HEADERS.map((x) => x === '__BL_START__' ? (baselineFound ? 'BL Project Start' : 'Planned Start')
     : x === '__BL_FINISH__' ? (baselineFound ? 'BL Project Finish' : 'Planned Finish') : x);
@@ -171,7 +192,7 @@ export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData
   for (const p of reportProjects) projRows.push([p.proj_short_name, longName.get(p.proj_id) ?? '', d(xerDate(p.last_recalc_date))]);
 
   return {
-    sheets: [{ name: 'TASK (XER)', rows: [header, ...rows] }, { name: 'PROJECT (XER)', rows: projRows }],
+    sheets: [{ name: 'TASK (XER)', rows: [header, ...rows] }, { name: 'PROJECT (XER)', rows: projRows }, { name: 'TASKPRED (XER)', rows: predRows }],
     date1904: false,
     encoding,
     projects: reportProjects.map((p) => p.proj_short_name),

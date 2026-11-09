@@ -5,6 +5,13 @@ import { AR, AR_PATTERNS } from '../src/ar';
 import { FIELDS } from '../src/core/fields';
 import { DIM_LABEL, RULE_FIELDS, RULE_TYPES } from '../src/core/classify';
 import { EXCEPTION_TYPES } from '../src/core/project';
+import { readWorkbookFile } from '../src/core/readFile';
+import { DEFAULT_SETTINGS } from '../src/core/settings';
+import { runImport, pickSheet, findDataDate, DEFAULT_IMPORT_OPTIONS } from '../src/core/importer';
+import { calcActivities } from '../src/core/engine';
+import { emptyClassification } from '../src/core/classify';
+import { readLogic } from '../src/core/logic';
+import { dcma } from '../src/core/dcma';
 import { WEIGHT_METHODS, PLANNED_METHODS, ACTUAL_SOURCES, CRIT_RULES, BASELINE_USES, FORECAST_METHODS } from '../src/core/settings';
 
 const SRC = join(__dirname, '..', 'src');
@@ -52,6 +59,23 @@ describe('Arabic interface text', () => {
       'APPROVED', 'BLOCKED', 'PENDING REVIEW', 'CHANGED SINCE APPROVAL', 'RED', 'AMBER', 'GREEN', 'Critical', 'Warning', 'Info',
     ];
     expect(values.filter((v) => AR[v] == null)).toEqual([]);
+  });
+  it('covers every text the DCMA checks show (names, measures, reasons, item notes)', () => {
+    const texts = new Set<string>();
+    for (const f of ['sample.xer', 'p6_no_baseline.xlsx', 'p6_real_export.xlsx']) {
+      const wb = readWorkbookFile(f, new Uint8Array(readFileSync(join(__dirname, 'fixtures', f))));
+      const si = pickSheet(wb.sheets, {});
+      const imp = runImport(wb.sheets[si].rows, wb.sheets[si].name, wb.date1904, {}, DEFAULT_IMPORT_OPTIONS);
+      const dd = findDataDate(wb.sheets, false) ?? 46100;
+      const rows = calcActivities({ activities: imp.activities, settings: { ...DEFAULT_SETTINGS, dataDate: dd, baselineUse: 'Current import' }, classification: emptyClassification() });
+      for (const c of dcma(rows, readLogic(wb.sheets, si, imp, 'Days', 8), dd, null)) {
+        [c.name, c.measure, c.reason].forEach((x) => x && texts.add(x));
+        c.items.forEach((i) => i.why && !/^(FS|SS|FF|SF)$/.test(i.why) && texts.add(i.why));
+      }
+    }
+    const src = readFileSync(join(SRC, 'core', 'dcma.ts'), 'utf8');
+    for (const m of src.matchAll(/why: '([^']+)'/g)) texts.add(m[1]);
+    expect([...texts].filter((x) => AR[x] == null)).toEqual([]);
   });
   it('translates messages with values inside', () => {
     expect(tr('Forecast 12 days late (red limit 10)')).toBe('التوقع متأخر 12 يوم (الحد الأحمر 10)');

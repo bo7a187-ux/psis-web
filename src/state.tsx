@@ -18,7 +18,7 @@ import { SAMPLE_DATA_DATE, SAMPLE_FILE_NAME, SAMPLE_TITLE, sampleClassification,
 
 export type Page =
   | 'home' | 'import' | 'mapping' | 'validation' | 'classification' | 'settings' | 'activities' | 'results'
-  | 'exec' | 'control' | 'delay' | 'history' | 'baselines' | 'report' | 'audit';
+  | 'exec' | 'control' | 'delay' | 'quality' | 'history' | 'baselines' | 'report' | 'audit';
 
 interface Derived {
   imp: ImportResult | null;

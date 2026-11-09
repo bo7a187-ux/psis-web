@@ -349,6 +349,12 @@ details > summary { cursor: pointer; }
 @media screen and (max-width: 860px) { .rp-kpis { grid-template-columns: repeat(2, 1fr); } .rp-cols { grid-template-columns: 1fr; } }
 .rp-t.dates td:nth-child(2), .rp-t.dates td:nth-child(3) { white-space: nowrap; }
 
+/* ---------- team version ---------- */
+.team-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-color: #c8d8ff; background: linear-gradient(90deg, var(--blue-soft), #fff 70%); }
+.team-card h2 { margin-bottom: 2px; }
+.team-card .grow { min-width: 240px; }
+a.btn { text-decoration: none; }
+
 /* ---------- credit ---------- */
 .credit { padding: 10px 8px 2px; font-size: 11.5px; font-weight: 600; color: #7d90b6; letter-spacing: .02em; }
 .site-credit { display: none; text-align: center; font-size: 12px; color: var(--ink-3); padding: 28px 0 0; }

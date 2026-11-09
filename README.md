@@ -26,6 +26,19 @@ Primavera P6 schedule analysis and management reporting.
 - **.xls** (Excel 97-2003, older P6): own BIFF8 reader (`src/core/xls.ts`), no third-party parser.
 - The format is detected from the file content, not the name.
 
+## Schedule quality (DCMA 14-point)
+`src/core/dcma.ts` runs the 14 DCMA checks on open activities (WBS Summary and LOE excluded).
+Relationships come from the XER file or from the TASKPRED sheet of a P6 Excel export; constraints
+from the Primary / Secondary Constraint columns (`src/core/logic.ts`). Checks that need data the
+file does not hold are shown as "not available" with the reason; the critical path test needs P6.
+This never changes progress figures or the approval fingerprint.
+
+## Owner settings (`src/config.ts`)
+- `TEAM_FORM_URL`: link of the "interested in the team version" form; empty = card hidden.
+- `GOATCOUNTER_CODE`: GoatCounter code for anonymous visit counting (page name only, no cookies,
+  no schedule data); empty = off. When set, the security policy allows images from that one site
+  only - scripts still cannot connect anywhere.
+
 ## Languages
 - English and Arabic (right-to-left), switch in the top bar; the choice is remembered.
   English is the default. English text is the key (`t('...')` in `src/i18n.tsx`);

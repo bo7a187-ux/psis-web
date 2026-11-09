@@ -2,7 +2,7 @@
  * Turns a sheet (rows of raw cells) into clean activities using the column mapping.
  * Every value that cannot be read is reported - nothing is guessed or set to zero.
  */
-import { FIELDS, FIELD_BY_KEY, normHeader, headerUnit, type FieldKey } from './fields';
+import { FIELDS, FIELD_BY_KEY, normHeader, headerUnit, QUALITY_HEADERS, type FieldKey } from './fields';
 import { parseDateText, serialToDay, type NumericDateOrder, type Day } from './dates';
 import { colLetter, type Grid, type RawCell } from './xlsx';
 import type { Activity, CellIssue } from './types';
@@ -284,7 +284,8 @@ export function runImport(
     if (c != null) byCol.set(c, [...(byCol.get(c) ?? []), f.key]);
   }
   const sharedColumns = [...byCol.entries()].filter(([, ks]) => ks.length > 1).map(([c, fields]) => ({ column: columns[c], fields }));
-  const unusedColumns = columns.filter((c) => !byCol.has(c.index) && (c.header1 || c.header2));
+  const quality = new Set(QUALITY_HEADERS.map(normHeader));
+  const unusedColumns = columns.filter((c) => !byCol.has(c.index) && (c.header1 || c.header2) && !quality.has(normHeader(c.header1)) && !quality.has(normHeader(c.header2)));
 
   // ---- read activities
   const activities: Activity[] = [];
