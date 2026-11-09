@@ -17,68 +17,90 @@ import { ReportPage } from './ui/pages/ReportPage';
 import { CalculationAuditPage } from './ui/pages/CalculationAuditPage';
 import { fmtDate } from './core/dates';
 import { AskText } from './ui/common';
+import { Icon, BrandMark, type IconName } from './ui/icons';
+import { FIELDS } from './core/fields';
 
-const WORKFLOW: { p: Page; label: string }[] = [
-  { p: 'import', label: 'Import schedule' },
-  { p: 'mapping', label: 'Column mapping' },
-  { p: 'validation', label: 'Validation' },
-  { p: 'classification', label: 'Classification' },
-  { p: 'settings', label: 'Settings' },
-  { p: 'results', label: 'Approve & results' },
+const WORKFLOW: { p: Page; label: string; icon: IconName }[] = [
+  { p: 'import', label: 'Import schedule', icon: 'upload' },
+  { p: 'mapping', label: 'Column mapping', icon: 'columns' },
+  { p: 'validation', label: 'Validation', icon: 'shield' },
+  { p: 'classification', label: 'Classification', icon: 'tag' },
+  { p: 'settings', label: 'Settings', icon: 'sliders' },
+  { p: 'results', label: 'Approve & results', icon: 'check' },
 ];
-const LATER: { p: Page; label: string; stage: number }[] = [
-  { p: 'exec', label: 'Executive dashboard', stage: 3 },
-  { p: 'control', label: 'Schedule control', stage: 3 },
-  { p: 'delay', label: 'Delay analysis', stage: 3 },
-  { p: 'history', label: 'History & snapshots', stage: 4 },
-  { p: 'baselines', label: 'Baselines', stage: 4 },
-  { p: 'report', label: 'Monthly report (PDF)', stage: 5 },
-  { p: 'audit', label: 'Calculation audit', stage: 3 },
+const REPORTS: { p: Page; label: string; icon: IconName }[] = [
+  { p: 'exec', label: 'Executive dashboard', icon: 'gauge' },
+  { p: 'control', label: 'Schedule control', icon: 'gantt' },
+  { p: 'delay', label: 'Delay analysis', icon: 'clock' },
+  { p: 'history', label: 'History & snapshots', icon: 'history' },
+  { p: 'baselines', label: 'Baselines', icon: 'flag' },
+  { p: 'report', label: 'Monthly report (PDF)', icon: 'report' },
+  { p: 'audit', label: 'Calculation audit', icon: 'search' },
 ];
+
+/** Which workflow steps are finished, so the sidebar can tick them off. */
+export function useStepState(): Partial<Record<Page, boolean>> {
+  const { project, stored, imp, report, approval } = useApp();
+  if (!project) return {};
+  const mapped = !!imp && FIELDS.every((f) => !f.required || imp.matches[f.key].column != null);
+  return {
+    import: !!stored && !!imp && imp.activities.length > 0,
+    mapping: mapped,
+    validation: mapped && !!report && report.criticalCount === 0,
+    settings: project.settings.dataDate != null,
+    results: approval === 'APPROVED',
+  };
+}
 
 export function App() {
   const app = useApp();
   const { page, setPage, project, projects } = app;
   const needsProject = !project;
+  const done = useStepState();
 
   return (
     <div className="app">
       <aside className="side">
-        <div className="brand">Schedule Intelligence<small>Primavera P6 analysis &amp; reporting</small></div>
-        <button className={`nav-btn ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}>⌂ Home</button>
+        <button className="brand" onClick={() => setPage('home')}>
+          <BrandMark />
+          <span>Schedule Intelligence<small>P6 analysis &amp; reporting</small></span>
+        </button>
+        <button className={`nav-btn ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}><Icon name="home" />Home</button>
         <div className="nav-group">Monthly workflow</div>
         {WORKFLOW.map((w, i) => (
-          <button key={w.p} className={`nav-btn ${page === w.p ? 'active' : ''}`} disabled={needsProject} onClick={() => setPage(w.p)}>
-            <span className="num">{i + 1}</span>{w.label}
+          <button key={w.p} className={`nav-btn step-btn ${page === w.p ? 'active' : ''} ${done[w.p] ? 'done' : ''}`} disabled={needsProject} onClick={() => setPage(w.p)}>
+            <span className="num">{done[w.p] ? <Icon name="check" size={12} stroke={3} /> : i + 1}</span>{w.label}
           </button>
         ))}
         <button className={`nav-btn ${page === 'activities' ? 'active' : ''}`} disabled={needsProject} onClick={() => setPage('activities')}>
-          <span className="num">≡</span>Activities (data)
+          <Icon name="table" />Activities (data)
         </button>
         <div className="nav-group">Reports</div>
-        {LATER.map((w) => w.stage <= 5 ? (
-          <button key={w.p} className={`nav-btn ${page === w.p ? 'active' : ''}`} disabled={needsProject || !app.rows} onClick={() => setPage(w.p)}>{w.label}</button>
-        ) : (
-          <button key={w.p} className="nav-btn" disabled title={`Coming in stage ${w.stage}`}>
-            {w.label}<span className="tag">stage {w.stage}</span>
+        {REPORTS.map((w) => (
+          <button key={w.p} className={`nav-btn ${page === w.p ? 'active' : ''}`} disabled={needsProject || !app.rows} onClick={() => setPage(w.p)}>
+            <Icon name={w.icon} />{w.label}
           </button>
         ))}
         <div className="side-foot">
-          🔒 Runs only in this browser. Your schedule data is never uploaded.
-          {!app.persisted && app.ready && <div style={{ marginTop: 6 }}>Storage is not marked as persistent - keep a backup file.</div>}
+          <Icon name="lock" size={15} />
+          <span>Runs only in this browser. Your schedule data is never uploaded.
+            {!app.persisted && app.ready && <em>Storage is not marked as persistent - keep a backup file.</em>}
+          </span>
         </div>
       </aside>
       <div className="main">
         <div className="topbar">
-          <span className="lbl">Project</span>
-          <select value={project?.id ?? ''} onChange={(e) => e.target.value && app.selectProject(e.target.value)} style={{ minWidth: 260 }}>
-            {!project && <option value="">- none -</option>}
-            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          <label className="proj-pick">
+            <span className="lbl">Project</span>
+            <select value={project?.id ?? ''} onChange={(e) => e.target.value && app.selectProject(e.target.value)}>
+              {!project && <option value="">- none -</option>}
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </label>
           <ProjectMenu />
           <span className="grow" />
           {project?.isSample && <span className="badge sample">SAMPLE DATA</span>}
-          {project && <span className="small muted">Data date: <b>{fmtDate(project.settings.dataDate) || 'not set'}</b></span>}
+          {project && <span className="dd-chip"><Icon name="calendar" size={14} />Data date <b>{fmtDate(project.settings.dataDate) || 'not set'}</b></span>}
           {project && <ApprovalBadge />}
         </div>
         <div className="content">
@@ -131,9 +153,9 @@ function ProjectMenu() {
   const pick = (a: Ask) => { setAsk(a); setOpen(false); };
   return (
     <span style={{ position: 'relative' }}>
-      <button className="btn small" onClick={() => setOpen(!open)} aria-expanded={open}>Project ▾</button>
+      <button className="btn small" onClick={() => setOpen(!open)} aria-expanded={open}>Manage ▾</button>
       {open && (
-        <div className="card" style={{ position: 'absolute', top: 34, left: 0, zIndex: 20, width: 260, padding: 8 }} onMouseLeave={() => setOpen(false)}>
+        <div className="card menu" onMouseLeave={() => setOpen(false)}>
           <MenuItem onClick={() => pick('new')}>New project…</MenuItem>
           <MenuItem onClick={() => { app.createSample(); setOpen(false); }}>New sample project (SAMPLE DATA)</MenuItem>
           {app.project && <MenuItem onClick={() => pick('rename')}>Rename…</MenuItem>}
@@ -150,6 +172,6 @@ function MenuItem({ children, onClick, danger }: { children: React.ReactNode; on
 
 export function ApprovalBadge() {
   const { approval } = useApp();
-  if (approval === 'APPROVED') return <span className="badge ok">DATA APPROVED</span>;
-  return <span className="badge draft" title={approval}>DRAFT - NOT APPROVED · {approval}</span>;
+  if (approval === 'APPROVED') return <span className="badge ok"><Icon name="check" size={12} stroke={3} />DATA APPROVED</span>;
+  return <span className="badge draft" title={`Reports are drafts until the data is approved (${approval})`}>DRAFT · {approval}</span>;
 }

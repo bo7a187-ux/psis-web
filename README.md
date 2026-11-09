@@ -16,6 +16,20 @@ Primavera P6 schedule analysis and management reporting.
 - Stage 2 (done): project-level calculations (KPIs, SPI, health, groups, exception lists, S-curve, trend), SHA-256 approval fingerprint, 95 tests, comparison report in reports/.
 - Stage 3 (done): executive dashboard (dark navy), schedule control + heatmap, delay analysis, calculation audit, filters. Stage 4: history, snapshots, baselines, backup file. Stage 5: report + PDF.
 
+## P6 import
+- Columns are matched by name after normalising the labels real P6 exports use:
+  `(*)` read-only markers, units such as `Original Duration(d)` / `Total Float(h)`,
+  `_` / `-` / extra spaces, any capitalisation. A `(d)` or `(h)` in the header sets the
+  unit of that column, whatever the Import option says.
+- P6 internal codes (`TK_Active`, `TT_Mile`, ...) are turned into the labels P6 shows.
+- No baseline columns: Planned Start / Finish are used and the user is told so.
+- Data date: read from the file when it states one (`Data Date` / `last_recalc_date`),
+  otherwise suggested from the activities (one click to accept).
+- The Import page has a built-in "How to export from P6" guide, the column list and an
+  empty template.
+- Fixtures shaped like a real export: `test/fixtures/p6_real_export.xlsx`,
+  `p6_no_baseline.xlsx` (`tools/make_p6_fixture.py`), tested in `test/import-p6-real.test.ts`.
+
 ## Developer commands
 ```
 npm install

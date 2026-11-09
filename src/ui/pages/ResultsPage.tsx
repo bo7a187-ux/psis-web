@@ -13,13 +13,13 @@ export function ResultsPage() {
   const [exc, setExc] = useState<ExceptionType>('Late finish forecast (days)');
   const exRows = useMemo(() => (rows && project ? exceptionList(rows, project.settings, NO_FILTER, exc) : []), [rows, project, exc]);
   if (!project) return null;
-  if (!s || !rows || !report) return <><PageHead title="Approve & results" /><div className="card muted">{app.calcError ?? 'Import a file first.'}</div></>;
+  if (!s || !rows || !report) return <><PageHead step={6} title="Approve & results" /><div className="card muted">{app.calcError ?? 'Import a file first.'}</div></>;
   const st = project.settings;
   const tone = approval === 'APPROVED' ? 'good' : approval === 'BLOCKED' ? 'bad' : 'warn';
 
   return (
     <>
-      <PageHead title="Approve & results">
+      <PageHead step={6} title="Approve & results">
         <p>Review the calculated figures, then approve the import. Approval stores a fingerprint of every value and setting used; any later change returns all reports to DRAFT. The dashboards (stage 3) are built on exactly these figures.</p>
       </PageHead>
 

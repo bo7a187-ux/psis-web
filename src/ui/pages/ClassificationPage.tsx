@@ -27,7 +27,7 @@ export function ClassificationPage() {
 
   return (
     <>
-      <PageHead title="4. Classification" right={<button className="btn primary" onClick={() => app.setPage('settings')}>Next: settings →</button>}>
+      <PageHead step={4} title="Classification" right={<button className="btn primary" onClick={() => app.setPage('settings')}>Next: settings →</button>}>
         <p>Assign Phase, Discipline, Building, Floor and Location. A manual override by Activity ID wins. Otherwise the <b>first</b> rule from the top that gives a value for that item and matches the activity is used. Each item is decided separately. Matching ignores upper/lower case. Overrides survive every new import.</p>
       </PageHead>
       {rows && (unclassified.length

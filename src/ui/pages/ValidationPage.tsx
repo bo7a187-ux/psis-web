@@ -11,14 +11,14 @@ export function ValidationPage() {
   const { imp, report, project, calcError } = app;
   const [open, setOpen] = useState<string | null>(null);
   if (!project) return null;
-  if (!imp || !report) return <><PageHead title="3. Validation" /><div className="card muted">Import a file first.</div></>;
+  if (!imp || !report) return <><PageHead step={3} title="Validation" /><div className="card muted">Import a file first.</div></>;
   const checks = [...report.checks].sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   const infoCount = report.checks.filter((c) => c.severity === 'Info').reduce((n, c) => n + c.count, 0);
   const noSavedBaseline = project.settings.baselineUse !== 'Current import' && !project.baselines.original;
 
   return (
     <>
-      <PageHead title="3. Validation" right={<button className="btn primary" onClick={() => app.setPage('classification')}>Next: classification →</button>}>
+      <PageHead step={3} title="Validation" right={<button className="btn primary" onClick={() => app.setPage('classification')}>Next: classification →</button>}>
         <p>Review the import here before any report is used. Critical issues block approval; warnings explain what is excluded from a figure and why. Missing values are reported, never treated as zero.</p>
       </PageHead>
       <div className="grid3" style={{ marginBottom: 16 }}>

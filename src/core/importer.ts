@@ -2,7 +2,7 @@
  * Turns a sheet (rows of raw cells) into clean activities using the column mapping.
  * Every value that cannot be read is reported - nothing is guessed or set to zero.
  */
-import { FIELDS, FIELD_BY_KEY, normHeader, type FieldKey } from './fields';
+import { FIELDS, FIELD_BY_KEY, normHeader, headerUnit, type FieldKey } from './fields';
 import { parseDateText, serialToDay, type NumericDateOrder, type Day } from './dates';
 import { colLetter, type Grid, type RawCell } from './xlsx';
 import type { Activity, CellIssue } from './types';
@@ -42,11 +42,15 @@ export interface FieldMatch {
   key: FieldKey;
   column: number | null;
   matchedHeader?: string;
-  source: 'saved' | 'default' | 'none' | 'ignored';
+  /** fallback = found only through a last-resort header (see FieldDef.fallback) */
+  source: 'saved' | 'default' | 'fallback' | 'none' | 'ignored';
   /** % fields: scale used (1 = values are 0-1, 100 = values are 0-100) */
   scale?: 1 | 100;
   scaleNote?: string;
   note?: string;
+  /** duration fields: unit for plain numbers in this column (from the header, else Import options) */
+  unit?: DurationUnit;
+  unitFromHeader?: boolean;
 }
 
 export interface ImportResult {
@@ -72,6 +76,15 @@ function cellText(c: RawCell): string {
   if (typeof c === 'boolean') return c ? 'TRUE' : 'FALSE';
   return String(c).replace(/\s+/g, ' ').trim();
 }
+
+/** P6 internal codes (seen in XER-based or field-code exports) -> the labels P6 shows. */
+const STATUS_CODES: Record<string, string> = { tk_notstart: 'Not Started', tk_active: 'In Progress', tk_complete: 'Completed' };
+const TYPE_CODES: Record<string, string> = {
+  tt_task: 'Task Dependent', tt_rsrc: 'Resource Dependent', tt_loe: 'Level of Effort', tt_mile: 'Start Milestone',
+  tt_finmile: 'Finish Milestone', tt_wbs: 'WBS Summary',
+};
+export const p6Status = (t: string) => STATUS_CODES[t.toLowerCase()] ?? t;
+export const p6Type = (t: string) => TYPE_CODES[t.toLowerCase()] ?? t;
 
 function rawForReport(c: RawCell): string {
   if (c == null) return '';
@@ -223,6 +236,17 @@ export function runImport(
         }
       }
     }
+    if (found.column == null && f.fallback) {
+      fb: for (const h of f.fallback.headers) {
+        const n = normHeader(h);
+        for (const col of columns) {
+          if (normHeader(col.header1) === n || (headerRows === 2 && normHeader(col.header2) === n)) {
+            found = { key: f.key, column: col.index, matchedHeader: h, source: 'fallback', note: f.fallback.note };
+            break fb;
+          }
+        }
+      }
+    }
     matches[f.key] = found;
   }
 
@@ -240,16 +264,16 @@ export function runImport(
     }
     if (f.kind === 'duration') {
       const col = columns[m.column];
-      const looksHours = /hr_cnt|\(h\)|hours/i.test(col.header1 + ' ' + col.header2);
-      let plainNumbers = 0, withSuffix = 0;
+      const fromHeader = headerUnit(col.header2, col.header1);
+      m.unit = fromHeader ?? opts.durationUnit;
+      m.unitFromHeader = fromHeader != null;
+      let withSuffix = 0;
       for (let r = dataStart; r < rows.length; r++) {
         const c = rows[r]?.[m.column];
-        if (typeof c === 'number') plainNumbers++;
-        else if (typeof c === 'string' && /[a-z]\s*$/i.test(c.trim())) withSuffix++;
+        if (typeof c === 'string' && /[a-z]\s*$/i.test(c.trim())) withSuffix++;
       }
-      if (looksHours && plainNumbers > 0 && opts.durationUnit === 'Days')
-        m.note = `Header suggests hours but plain numbers are read as days (Duration unit = Days). Check the unit in Import options.`;
-      else if (withSuffix > 0) m.note = `Values carry their own unit (e.g. "14d" / "112h") - read accordingly.`;
+      if (withSuffix > 0) m.note = `Values carry their own unit (e.g. "14d" / "112h") - read accordingly.`;
+      else if (fromHeader) m.note = `Unit taken from the header: ${fromHeader.toLowerCase()}.`;
     }
   }
 
@@ -297,13 +321,13 @@ export function runImport(
       const rec = a as unknown as Record<string, unknown>;
       switch (f.kind) {
         case 'text':
-          rec[f.key] = cellText(c);
+          rec[f.key] = f.key === 'status' ? p6Status(cellText(c)) : f.key === 'type' ? p6Type(cellText(c)) : cellText(c);
           break;
         case 'flag':
           rec[f.key] = c === true ? 'Yes' : c === false ? 'No' : cellText(c);
           break;
         case 'duration': {
-          const p = parseDuration(c, opts.durationUnit, opts.hoursPerDay);
+          const p = parseDuration(c, matches[f.key].unit ?? opts.durationUnit, opts.hoursPerDay);
           if (p.error) issue(f.key, c, p.error);
           rec[f.key] = p.value;
           break;
@@ -367,3 +391,45 @@ export function pickSheet(sheets: { name: string; rows: Grid }[], saved: SavedMa
 }
 
 export { FIELD_BY_KEY };
+
+/**
+ * Data date written in the workbook, if any: a "Data Date" / "last_recalc_date" header cell
+ * (P6 PROJECT sheet, or a title block) with a date next to it or below it.
+ */
+export function findDataDate(sheets: { name: string; rows: Grid }[], date1904: boolean): Day | null {
+  const wanted = new Set(['data date', 'last recalc date', 'reporting data date', 'project data date']);
+  for (const s of sheets) {
+    for (let r = 0; r < Math.min(40, s.rows.length); r++) {
+      const row = s.rows[r] ?? [];
+      for (let c = 0; c < row.length; c++) {
+        if (typeof row[c] !== 'string' || !wanted.has(normHeader(row[c]))) continue;
+        for (const cand of [row[c + 1], s.rows[r + 1]?.[c], s.rows[r + 2]?.[c]]) {
+          if (cand == null || cand === '') continue;
+          const p = parseDateCell(cand, date1904, 'DMY');
+          if (p.value != null && p.value > 32874) return p.value;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Best estimate of the P6 data date from the activities when the file does not state it:
+ * P6 moves every unfinished start to the data date or later, and every actual date is before it.
+ * Returns the earliest start of a not-started activity (often exactly the data date), bounded by
+ * the day after the latest actual date.
+ */
+export function guessDataDate(acts: Activity[]): { value: Day; latestActual: Day | null; earliestOpenStart: Day | null } | null {
+  let latestActual: Day | null = null;
+  let earliestOpenStart: Day | null = null;
+  for (const a of acts) {
+    for (const d of [a.actStart, a.actFinish]) if (d != null && (latestActual == null || d > latestActual)) latestActual = d;
+    const notStarted = a.actStart == null && !/complet|progress/i.test(a.status);
+    if (notStarted && a.start != null && (earliestOpenStart == null || a.start < earliestOpenStart)) earliestOpenStart = a.start;
+  }
+  const floor = latestActual != null ? latestActual + 1 : null;
+  if (earliestOpenStart != null && (floor == null || earliestOpenStart >= floor)) return { value: earliestOpenStart, latestActual, earliestOpenStart };
+  if (floor != null) return { value: floor, latestActual, earliestOpenStart };
+  return earliestOpenStart != null ? { value: earliestOpenStart, latestActual, earliestOpenStart } : null;
+}

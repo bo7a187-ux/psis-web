@@ -116,7 +116,7 @@ export function readXlsx(data: Uint8Array): WorkbookData {
   try {
     files = unzipSync(data);
   } catch {
-    throw new XlsxError('This file is not a valid .xlsx workbook (it could not be opened as a ZIP package). If it is an old .xls file, open it in Excel and save it as .xlsx.');
+    throw new XlsxError('This file could not be opened as an Excel workbook. If it is password-protected, remove the password in Excel first. If it is an old .xls file, open it in Excel and save it as .xlsx (File > Save As > Excel Workbook).');
   }
   const get = (p: string) => (files[p] ? strFromU8(files[p]) : undefined);
   const wbXml = get('xl/workbook.xml');
@@ -226,6 +226,6 @@ export function readCsv(text: string): WorkbookData {
 export function readWorkbookFile(name: string, data: Uint8Array): WorkbookData {
   if (/\.csv$|\.txt$/i.test(name)) return readCsv(new TextDecoder('utf-8').decode(data));
   if (/\.xls$/i.test(name) && !(data[0] === 0x50 && data[1] === 0x4b))
-    throw new XlsxError('Old-style .xls files are not supported. Open the file in Excel and save it as .xlsx, or export from P6 as .xlsx.');
+    throw new XlsxError('This is an old-style .xls file, which cannot be read. Fix: open it in Excel and use File > Save As > Excel Workbook (.xlsx), then choose the new file here. Next time, in P6 choose File > Export > Spreadsheet (XLSX).');
   return readXlsx(data);
 }

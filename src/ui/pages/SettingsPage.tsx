@@ -37,7 +37,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHead title="5. Settings" right={<div className="row"><button className="btn primary" onClick={() => app.setPage('results')}>Next: approve &amp; results →</button><ConfirmButton confirmText="Click again: reset all methods and thresholds" onConfirm={() => set({ ...DEFAULT_SETTINGS, dataDate: s.dataDate, projectTitle: s.projectTitle })}>Reset to defaults</ConfirmButton></div>}>
+      <PageHead step={5} title="Settings" right={<div className="row"><button className="btn primary" onClick={() => app.setPage('results')}>Next: approve &amp; results →</button><ConfirmButton confirmText="Click again: reset all methods and thresholds" onConfirm={() => set({ ...DEFAULT_SETTINGS, dataDate: s.dataDate, projectTitle: s.projectTitle })}>Reset to defaults</ConfirmButton></div>}>
         <p>Reporting parameters and calculation methods - the same options as the SETTINGS sheet. Every method in use is printed on the dashboards. Changing any of them after approval returns the reports to DRAFT.</p>
       </PageHead>
       <div className="card">

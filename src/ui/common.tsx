@@ -67,10 +67,11 @@ export function SevBadge({ s }: { s: 'Critical' | 'Warning' | 'Info' }) {
   return <span className={`badge ${s.toLowerCase()}`}>{s}</span>;
 }
 
-export function PageHead({ title, children, right }: { title: string; children?: ReactNode; right?: ReactNode }) {
+export function PageHead({ title, children, right, step }: { title: string; children?: ReactNode; right?: ReactNode; step?: number }) {
   return (
     <div className="page-head">
       <div>
+        {step != null && <div className="eyebrow">Step {step} of 6 · Monthly workflow</div>}
         <h1>{title}</h1>
         {children}
       </div>

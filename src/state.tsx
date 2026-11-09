@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { db, newId, addLog, requestPersistence, type Project, type StoredImport } from './store/db';
 import { DEFAULT_SETTINGS } from './core/settings';
-import { DEFAULT_IMPORT_OPTIONS, runImport, pickSheet, type ImportResult } from './core/importer';
+import { DEFAULT_IMPORT_OPTIONS, runImport, pickSheet, findDataDate, type ImportResult } from './core/importer';
 import { emptyClassification } from './core/classify';
 import { emptyBaselines, toMap, resolveRevision, itemsFromActivities, type Baselines } from './core/baselines';
 import { listSnapshots, saveSnapshot, deleteLatestSnapshot, buildSnapshot } from './store/snapshots';
@@ -150,6 +150,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await db.imports.put(rec);
     setStored(rec);
     await addLog(p.id, 'File imported', `${fileName} (sheet "${rec.sheets[rec.sheetIndex].name}")`);
+    // The data date is set automatically only when the file states it; otherwise the Import page suggests one.
+    if (p.settings.dataDate == null) {
+      const dd = findDataDate(wb.sheets, wb.date1904);
+      if (dd != null) {
+        await saveProject({ ...p, settings: { ...p.settings, dataDate: dd } });
+        await addLog(p.id, 'Data date set from file', String(dd));
+      }
+    }
   }, [saveProject]);
 
   const createSample = useCallback(async () => {

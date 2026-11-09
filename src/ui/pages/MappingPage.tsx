@@ -26,7 +26,7 @@ export function MappingPage() {
   const app = useApp();
   const { project, imp } = app;
   if (!project) return null;
-  if (!imp) return <><PageHead title="2. Column mapping" /><div className="card muted">Import a file first.</div></>;
+  if (!imp) return <><PageHead step={2} title="Column mapping" /><div className="card muted">Import a file first.</div></>;
 
   const setMap = (key: FieldKey, val: string) => {
     const m: SavedMapping = { ...project.mapping };
@@ -51,7 +51,7 @@ export function MappingPage() {
 
   return (
     <>
-      <PageHead title="2. Column mapping" right={<button className="btn primary" onClick={() => app.setPage('validation')}>Next: validation →</button>}>
+      <PageHead step={2} title="Column mapping" right={<button className="btn primary" onClick={() => app.setPage('validation')}>Next: validation →</button>}>
         <p>Each standard field is found by its header name, so column order does not matter. If a field is not found or the wrong column was picked, choose the right column - your choice is remembered for next month's import.</p>
       </PageHead>
       {missingReq.length > 0
@@ -62,10 +62,10 @@ export function MappingPage() {
       <div className="card">
         <div className="table-wrap">
           <table className="t">
-            <thead><tr><th>Standard field</th><th>Column in your file</th><th>Found by</th><th>First values (as read)</th><th>Status</th><th>% scale</th></tr></thead>
+            <thead><tr><th>Standard field</th><th>Column in your file</th><th>Found by</th><th style={{ minWidth: 230 }}>First values (as read)</th><th>Status</th><th>% scale</th></tr></thead>
             <tbody>
               {(['Required', 'Recommended', 'Other methods'] as const).map((g) => [
-                <tr key={g}><td colSpan={6} style={{ background: '#f7f9fc', fontWeight: 650, fontSize: 12 }}>{g === 'Other methods' ? 'Used by other methods / optional' : g}</td></tr>,
+                <tr key={g}><td colSpan={6} style={{ background: 'var(--surface-2)', fontWeight: 650, fontSize: 12 }}>{g === 'Other methods' ? 'Used by other methods / optional' : g}</td></tr>,
                 ...FIELDS.filter((f) => f.group === g).map((f) => {
                   const m = imp.matches[f.key];
                   const sv = project.mapping[f.key];
@@ -81,11 +81,13 @@ export function MappingPage() {
                           {imp.columns.map((c) => <option key={c.index} value={c.index}>{c.letter}: {c.label}</option>)}
                         </select>
                       </td>
-                      <td className="small muted nowrap">{m.source === 'saved' ? `your saved name "${m.matchedHeader}"` : m.source === 'default' ? `"${m.matchedHeader}"` : m.source === 'ignored' ? 'ignored' : ''}</td>
-                      <td className="small">{m.column != null ? sample(imp.activities, f) : ''}{m.note && <div className="muted">{m.note}</div>}</td>
+                      <td className="small muted nowrap">{m.source === 'saved' ? `your saved name "${m.matchedHeader}"` : m.source === 'default' ? `"${m.matchedHeader}"` : m.source === 'fallback' ? `fallback "${m.matchedHeader}"` : m.source === 'ignored' ? 'ignored' : ''}</td>
+                      <td className="small">{m.column != null ? sample(imp.activities, f) : ''}{m.note && (m.source === 'fallback'
+                        ? <div style={{ color: 'var(--amber)' }}>No baseline column in the file - "{m.matchedHeader}" is used instead.</div>
+                        : <div className="muted">{m.note}</div>)}</td>
                       <td className="nowrap">
                         {m.column != null
-                          ? bad ? <span className="badge critical">{bad} unreadable</span> : <span className="badge ok">Mapped</span>
+                          ? bad ? <span className="badge critical">{bad} unreadable</span> : m.source === 'fallback' ? <span className="badge warning">Check</span> : <span className="badge ok">Mapped</span>
                           : f.required ? <span className="badge critical">MISSING</span> : <span className="badge">Not found (optional)</span>}
                       </td>
                       <td>
