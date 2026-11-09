@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../../state';
 import { ProjectDialogs, useStepState, type Ask } from '../../App';
 import { BackupCard } from '../BackupCard';
-import { TEAM_FORM_URL, GOATCOUNTER_CODE } from '../../config';
+import { TEAM_EMAIL, TEAM_LINKEDIN, GOATCOUNTER_CODE } from '../../config';
 import { Icon, type IconName } from '../icons';
 import { pct, fd } from '../common';
 import { t, tr, getLang } from '../../i18n';
@@ -98,14 +98,17 @@ export function Home() {
         })}
       </div>
 
-      {TEAM_FORM_URL && (
+      {(TEAM_EMAIL || TEAM_LINKEDIN) && (
         <div className="card team-card">
           <span className="phase-ico"><Icon name="users" size={18} /></span>
           <div className="grow">
             <h2>{t('Working as a team?')}</h2>
-            <p className="small muted">{t('A team version is planned: several people and devices on the same project, with roles for planners, reviewers and management. Leave your details and you will be told when it is ready.')}</p>
+            <p className="small muted">{t('A team version is planned: several people and devices on the same project, with roles for planners, reviewers and management. Interested? Get in touch.')}</p>
           </div>
-          <a className="btn primary" href={TEAM_FORM_URL} target="_blank" rel="noopener noreferrer">{t("I'm interested")}</a>
+          <div className="row">
+            {TEAM_EMAIL && <a className="btn primary" href={`mailto:${TEAM_EMAIL}?subject=${encodeURIComponent(t('Masar Schedule - team version'))}&body=${encodeURIComponent(t('Hello, I am interested in the team version of Masar Schedule.\nName:\nCompany:\nNumber of users:'))}`}><Icon name="mail" size={16} />{t('Email me')}</a>}
+            {TEAM_LINKEDIN && <a className="btn" href={TEAM_LINKEDIN} target="_blank" rel="noopener noreferrer"><Icon name="linkedin" size={16} />{t('Message me on LinkedIn')}</a>}
+          </div>
         </div>
       )}
       <BackupCard />

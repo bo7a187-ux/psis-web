@@ -34,7 +34,7 @@ file does not hold are shown as "not available" with the reason; the critical pa
 This never changes progress figures or the approval fingerprint.
 
 ## Owner settings (`src/config.ts`)
-- `TEAM_FORM_URL`: link of the "interested in the team version" form; empty = card hidden.
+- `TEAM_EMAIL`, `TEAM_LINKEDIN`: contact buttons of the "team version" card; empty = hidden.
 - `GOATCOUNTER_CODE`: GoatCounter code for anonymous visit counting (page name only, no cookies,
   no schedule data); empty = off. When set, the security policy allows images from that one site
   only - scripts still cannot connect anywhere.

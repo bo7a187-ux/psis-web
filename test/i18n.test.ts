@@ -22,7 +22,7 @@ const literalKeys = () => {
   for (const f of walk(SRC).filter((x) => /\.tsx?$/.test(x) && !x.endsWith('ar.ts') && !x.endsWith('i18n.tsx'))) {
     for (const m of readFileSync(f, 'utf8').matchAll(re)) {
       const raw = m[1] ?? m[2] ?? m[3];
-      keys.add(raw.replace(/\\(["'`\\])/g, '$1'));
+      keys.add(raw.replace(/\\n/g, '\n').replace(/\\(["'`\\])/g, '$1'));
     }
   }
   return [...keys];

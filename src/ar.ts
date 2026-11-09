@@ -960,8 +960,11 @@ export const AR: Record<string, string> = {
 
   // ---------- team version, visit counting
   'Working as a team?': 'تشتغلون كفريق؟',
-  'A team version is planned: several people and devices on the same project, with roles for planners, reviewers and management. Leave your details and you will be told when it is ready.': 'نخطط لنسخة الفريق: عدة أشخاص وأجهزة على نفس المشروع، مع صلاحيات للمخططين والمراجعين والإدارة. اترك بياناتك ونبلغك أول ما تجهز.',
-  "I'm interested": 'مهتم',
+  'A team version is planned: several people and devices on the same project, with roles for planners, reviewers and management. Interested? Get in touch.': 'نخطط لنسخة الفريق: عدة أشخاص وأجهزة على نفس المشروع، مع صلاحيات للمخططين والمراجعين والإدارة. مهتم؟ تواصل معي.',
+  'Email me': 'راسلني بالإيميل',
+  'Message me on LinkedIn': 'راسلني على لينكدإن',
+  'Masar Schedule - team version': 'مسار الجدول الزمني - نسخة الفريق',
+  'Hello, I am interested in the team version of Masar Schedule.\nName:\nCompany:\nNumber of users:': 'السلام عليكم، أنا مهتم بنسخة الفريق من مسار الجدول الزمني.\nالاسم:\nالشركة:\nعدد المستخدمين:',
   'Only an anonymous visit count is recorded: the page name, with no schedule data and no cookies.': 'يُسجَّل فقط عدد زيارات مجهول: اسم الصفحة فقط، بدون أي بيانات من الجدول وبدون كوكيز.',
 
   // ---------- files, errors and notes from the core
