@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { fmtDate, fromYMD, parseDateText, toYMD, type Day } from '../core/dates';
+import { t, getLang } from '../i18n';
 
 export function pct(v: number | null | undefined, digits = 1): string {
   if (v == null || !Number.isFinite(v)) return '';
@@ -8,16 +9,22 @@ export function pct(v: number | null | undefined, digits = 1): string {
 export function pp(v: number | null | undefined, digits = 1): string {
   if (v == null || !Number.isFinite(v)) return '';
   const x = v * 100;
-  return `${x > 0 ? '+' : ''}${x.toFixed(digits)} pp`;
+  return `${ltr(`${x > 0 ? '+' : ''}${x.toFixed(digits)}`)} ${t('pp')}`;
 }
+
+/** Keeps dates, signed numbers and codes left-to-right inside Arabic (right-to-left) text. Display only. */
+export const ltr = (s: string): string => (getLang() === 'ar' && s ? `\u2066${s}\u2069` : s);
+/** Date for display (dd-Mmm-yy), safe inside Arabic text. Use fmtDate for values compared or typed. */
+export const fd = (d: Day | null | undefined): string => ltr(fmtDate(d));
 export function num(v: number | null | undefined, digits = 0): string {
   if (v == null || !Number.isFinite(v)) return '';
-  return v.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const s = v.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return v < 0 ? ltr(s) : s;
 }
 export function dateTime(iso: string): string {
   const d = new Date(iso);
   const day = fromYMD(d.getFullYear(), d.getMonth() + 1, d.getDate());
-  return `${fmtDate(day)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return ltr(`${fmtDate(day)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
 }
 
 /** Date field that always shows dd-Mmm-yy. Type a date or use the calendar button. */
@@ -29,16 +36,16 @@ export function DateInput({ value, onChange, id }: { value: Day | null; onChange
   const commit = () => {
     if (text.trim() === '') { setErr(''); onChange(null); return; }
     const r = parseDateText(text);
-    if (r.value == null) { setErr(r.error ?? 'Invalid date'); return; }
+    if (r.value == null) { setErr(t(r.error ?? 'Invalid date')); return; }
     setErr('');
     onChange(r.value);
   };
   const iso = value != null ? (() => { const { y, m, d } = toYMD(value); return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`; })() : '';
   return (
-    <span className={`date-input ${err ? 'err' : ''}`} title={err || 'Type e.g. 08-Nov-26, or use the calendar'}>
-      <input id={id} type="text" value={text} placeholder="dd-Mmm-yy" onChange={(e) => setText(e.target.value)} onBlur={commit}
+    <span className={`date-input ${err ? 'err' : ''}`} title={err || t('Type e.g. 08-Nov-26, or use the calendar')}>
+      <input id={id} type="text" value={text} placeholder={t("dd-Mmm-yy")} onChange={(e) => setText(e.target.value)} onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && commit()} />
-      <button type="button" className="btn small" aria-label="Open calendar" onClick={() => {
+      <button type="button" className="btn small" aria-label={t("Open calendar")} onClick={() => {
         const el = picker.current;
         if (!el) return;
         try { el.showPicker(); } catch { el.focus(); }
@@ -64,14 +71,14 @@ export function Stat({ k, v, tone, sub }: { k: string; v: ReactNode; tone?: 'bad
 }
 
 export function SevBadge({ s }: { s: 'Critical' | 'Warning' | 'Info' }) {
-  return <span className={`badge ${s.toLowerCase()}`}>{s}</span>;
+  return <span className={`badge ${s.toLowerCase()}`}>{t(s)}</span>;
 }
 
 export function PageHead({ title, children, right, step }: { title: string; children?: ReactNode; right?: ReactNode; step?: number }) {
   return (
     <div className="page-head">
       <div>
-        {step != null && <div className="eyebrow">Step {step} of 6 · Monthly workflow</div>}
+        {step != null && <div className="eyebrow">{t('Step {n} of 6 · Monthly workflow', { n: step })}</div>}
         <h1>{title}</h1>
         {children}
       </div>
@@ -117,7 +124,7 @@ export function AskText({ title, label, initial = '', okLabel = 'OK', danger, co
           <input id="ask-text" type="text" autoFocus value={v} onChange={(e) => setV(e.target.value)} />
         </div>
         <div className="row" style={{ justifyContent: 'flex-end', marginTop: 14 }}>
-          <button type="button" className="btn" onClick={onClose}>Cancel</button>
+          <button type="button" className="btn" onClick={onClose}>{t("Cancel")}</button>
           <button type="submit" className={`btn ${danger ? 'danger' : 'primary'}`} disabled={!ok}>{okLabel}</button>
         </div>
       </form>
@@ -130,7 +137,7 @@ export function ConfirmButton({ children, confirmText = 'Click again to confirm'
   children: ReactNode; confirmText?: string; onConfirm: () => void; className?: string;
 }) {
   const [armed, setArmed] = useState(false);
-  useEffect(() => { if (!armed) return; const t = setTimeout(() => setArmed(false), 4000); return () => clearTimeout(t); }, [armed]);
+  useEffect(() => { if (!armed) return; const tm = setTimeout(() => setArmed(false), 4000); return () => clearTimeout(tm); }, [armed]);
   return <button className={armed ? `${className} danger` : className} onClick={() => { if (armed) { setArmed(false); onConfirm(); } else setArmed(true); }}>{armed ? confirmText : children}</button>;
 }
 
@@ -150,3 +157,14 @@ export function downloadBytes(name: string, bytes: Uint8Array, type: string) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
+
+/** "12 days late vs 30-Apr-27" / "3 days early" / "on baseline 30-Apr-27", translated. */
+export function delayText(days: number | null | undefined, blFinish: number | null | undefined): string {
+  if (days == null) return '';
+  if (days > 0) return t('{n} days late vs {date}', { n: days, date: fd(blFinish) });
+  if (days < 0) return t('{n} days early', { n: -days });
+  return t('on baseline {date}', { date: fd(blFinish) });
+}
+
+/** Translate each message of a list (health reasons, flags…) and join them. */
+export const tjoin = (xs: string[], sep = ' · ') => xs.map((x) => t(x)).join(sep);

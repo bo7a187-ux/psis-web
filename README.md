@@ -16,6 +16,23 @@ Primavera P6 schedule analysis and management reporting.
 - Stage 2 (done): project-level calculations (KPIs, SPI, health, groups, exception lists, S-curve, trend), SHA-256 approval fingerprint, 95 tests, comparison report in reports/.
 - Stage 3 (done): executive dashboard (dark navy), schedule control + heatmap, delay analysis, calculation audit, filters. Stage 4: history, snapshots, baselines, backup file. Stage 5: report + PDF.
 
+## File formats
+- **.xer** (native P6 export, recommended): TASK, PROJECT, PROJWBS, CALENDAR, TASKRSRC and PROJCOST
+  are read directly (`src/core/xer.ts`). Hours are converted with each activity's calendar, the WBS
+  code path is rebuilt, the baseline comes from the project's baseline copy when it is in the file
+  (else Planned Start/Finish, flagged), the data date from `last_recalc_date`. Text encoding:
+  UTF-8, Windows-1256 (Arabic) or Windows-1252, detected automatically.
+- **.xlsx / .xlsm** and **.csv**, as before.
+- **.xls** (Excel 97-2003, older P6): own BIFF8 reader (`src/core/xls.ts`), no third-party parser.
+- The format is detected from the file content, not the name.
+
+## Languages
+- English and Arabic (right-to-left), switch in the top bar; the choice is remembered.
+  Default follows the browser language. English text is the key (`t('...')` in `src/i18n.tsx`);
+  the Arabic text is in `src/ar.ts`. `test/i18n.test.ts` fails if any interface text has no
+  Arabic translation. The Arabic font (IBM Plex Sans Arabic) is embedded, so the page still needs
+  no network access. The delay report Excel file stays in English.
+
 ## P6 import
 - Columns are matched by name after normalising the labels real P6 exports use:
   `(*)` read-only markers, units such as `Original Duration(d)` / `Total Float(h)`,
@@ -28,7 +45,9 @@ Primavera P6 schedule analysis and management reporting.
 - The Import page has a built-in "How to export from P6" guide, the column list and an
   empty template.
 - Fixtures shaped like a real export: `test/fixtures/p6_real_export.xlsx`,
-  `p6_no_baseline.xlsx` (`tools/make_p6_fixture.py`), tested in `test/import-p6-real.test.ts`.
+  `p6_no_baseline.xlsx` (`tools/make_p6_fixture.py`), tested in `test/import-p6-real.test.ts`;
+  XER fixtures from `tools/make_xer_fixture.py`; `.xls` fixtures converted from the `.xlsx` ones
+  with LibreOffice and compared cell by cell in `test/import-xls.test.ts`.
 
 ## Developer commands
 ```

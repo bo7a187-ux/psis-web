@@ -17,8 +17,12 @@ export function Chart({ option, height = 280, label }: { option: Record<string, 
     ro.observe(el.current);
     return () => { ro.disconnect(); c.dispose(); inst.current = null; };
   }, []);
-  useEffect(() => { inst.current?.setOption(option, true); }, [option]);
-  return <div ref={el} role="img" aria-label={label} style={{ width: '100%', height }} />;
+  useEffect(() => {
+    // charts use the page font (Arabic or Latin) and always run left to right (time axis)
+    const fontFamily = getComputedStyle(document.body).fontFamily;
+    inst.current?.setOption({ ...option, textStyle: { ...((option.textStyle as object) ?? {}), fontFamily } }, true);
+  }, [option]);
+  return <div ref={el} role="img" aria-label={label} style={{ width: '100%', height, direction: 'ltr' }} dir="ltr" />;
 }
 
 export const C = { planned: '#8aa4d6', actual: '#3b82f6', green: '#22c55e', amber: '#f59e0b', red: '#ef4444', text: '#c9d4e8', grid: 'rgba(255,255,255,0.08)', navy: '#0e1c36' };

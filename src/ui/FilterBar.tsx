@@ -1,5 +1,6 @@
 import { useApp } from '../state';
 import { NO_FILTER, type FilterKey } from '../core/project';
+import { t } from '../i18n';
 
 export function FilterBar({ dark }: { dark?: boolean }) {
   const { project, rows, filters, setFilters } = useApp();
@@ -14,15 +15,15 @@ export function FilterBar({ dark }: { dark?: boolean }) {
   const active = Object.values(filters).some((v) => v !== 'All');
   return (
     <div className={`filterbar ${dark ? 'dark' : ''}`}>
-      <span className="lbl">Filters</span>
+      <span className="lbl">{t("Filters")}</span>
       {defs.map(([k, label, opts]) => (
-        <label key={k} className="fsel"><span>{label}</span>
+        <label key={k} className="fsel"><span>{t(label)}</span>
           <select value={filters[k]} onChange={(e) => setFilters({ ...filters, [k]: e.target.value })}>
-            <option>All</option>{opts.map((o) => <option key={o}>{o}</option>)}
+            <option value="All">{t("All")}</option>{opts.map((o) => <option key={o}>{o}</option>)}
           </select>
         </label>
       ))}
-      {active && <button className="btn small" onClick={() => setFilters(NO_FILTER)}>Clear filters</button>}
+      {active && <button className="btn small" onClick={() => setFilters(NO_FILTER)}>{t("Clear filters")}</button>}
     </div>
   );
 }
