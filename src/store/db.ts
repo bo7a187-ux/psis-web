@@ -41,6 +41,9 @@ export interface StoredImport {
   date1904: boolean;
   sheetIndex: number;
   sheets: { name: string; rows: Grid }[];
+  /** file format and facts noted while reading (optional: older records have none) */
+  format?: 'xlsx' | 'xls' | 'xer' | 'csv';
+  info?: string[];
 }
 
 export interface SnapshotRecord extends Snapshot { id: string; projectId: string }

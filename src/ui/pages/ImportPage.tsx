@@ -46,9 +46,9 @@ export function ImportPage() {
         <span className="drop-ico"><Icon name={busy ? 'clock' : 'upload'} size={26} /></span>
         <div>
           <strong>{busy ? 'Reading the file…' : stored ? 'Drop this month\'s P6 export to replace the current import' : 'Drop the P6 Excel export here, or click to choose it'}</strong>
-          <div className="small muted">.xlsx (recommended) or .csv · your column names and settings are kept between imports</div>
+          <div className="small muted">.xlsx, .xls or .xer (P6 native) · your column names and settings are kept between imports</div>
         </div>
-        <input ref={fileRef} type="file" accept=".xlsx,.xlsm,.xls,.csv,.txt" hidden onChange={(e) => { handle(e.target.files?.[0]); e.target.value = ''; }} />
+        <input ref={fileRef} type="file" accept=".xlsx,.xlsm,.xls,.xer,.csv,.txt" hidden onChange={(e) => { handle(e.target.files?.[0]); e.target.value = ''; }} />
       </div>
       {error && <div className="notice bad"><b>The file could not be read.</b> {error}</div>}
 
@@ -62,6 +62,7 @@ export function ImportPage() {
               <span className="small muted"><Icon name="file" size={14} /> {stored.fileName} · imported {dateTime(stored.importedAt)}</span>
             </div>
             <ul className="checklist">
+              {(stored.info ?? []).map((x) => <CheckLine key={x} ok>{x}</CheckLine>)}
               <CheckLine ok={imp.activities.length > 0}>
                 <b>{imp.activities.length}</b> activities read from sheet <b>"{sheetName}"</b>
                 <span className="muted"> · header {imp.headerRows === 2 ? 'rows' : 'row'} {imp.headerStart + 1}{imp.headerRows === 2 ? `-${imp.headerStart + 2}` : ''}</span>

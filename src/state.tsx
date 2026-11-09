@@ -13,7 +13,7 @@ import { validate, type ValidationReport } from './core/validate';
 import { fingerprint, approvalStatus, type ApprovalStatus } from './core/fingerprint';
 import { summarize, NO_FILTER, type ProjectSummary, type Filters } from './core/project';
 import type { Snapshot } from './core/snapshot';
-import { readWorkbookFile } from './core/xlsx';
+import { readWorkbookFile } from './core/readFile';
 import { SAMPLE_DATA_DATE, SAMPLE_FILE_NAME, SAMPLE_TITLE, sampleClassification, sampleFileBytes, sampleHistory } from './sample/sample';
 
 export type Page =
@@ -145,7 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!wb.sheets.length) throw new Error('The file contains no worksheets.');
     const rec: StoredImport = {
       id: p.id, projectId: p.id, fileName, importedAt: new Date().toISOString(), date1904: wb.date1904,
-      sheetIndex: pickSheet(wb.sheets, p.mapping), sheets: wb.sheets,
+      sheetIndex: pickSheet(wb.sheets, p.mapping), sheets: wb.sheets, format: wb.format, info: wb.info,
     };
     await db.imports.put(rec);
     setStored(rec);

@@ -72,9 +72,9 @@ export function colLetter(i: number): string {
   return s;
 }
 
-const BUILTIN_DATE_FMTS = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 30, 36, 45, 46, 47, 50, 57]);
+export const BUILTIN_DATE_FMTS = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 30, 36, 45, 46, 47, 50, 57]);
 
-function isDateFormat(code: string): boolean {
+export function isDateFormat(code: string): boolean {
   const s = code.replace(/"[^"]*"/g, '').replace(/\[[^\]]*\]/g, '').replace(/\\./g, '');
   return /[dmyhs]/i.test(s) && !/^[#0.,%\s]*$/.test(s) && !/General/i.test(s) && /[dy]|m{3,}/i.test(s);
 }
@@ -221,11 +221,4 @@ export function readCsv(text: string): WorkbookData {
   }
   if (field !== '' || row.length) { row.push(field === '' ? null : field); rows.push(row); }
   return { sheets: [{ name: 'CSV', rows }], date1904: false };
-}
-
-export function readWorkbookFile(name: string, data: Uint8Array): WorkbookData {
-  if (/\.csv$|\.txt$/i.test(name)) return readCsv(new TextDecoder('utf-8').decode(data));
-  if (/\.xls$/i.test(name) && !(data[0] === 0x50 && data[1] === 0x4b))
-    throw new XlsxError('This is an old-style .xls file, which cannot be read. Fix: open it in Excel and use File > Save As > Excel Workbook (.xlsx), then choose the new file here. Next time, in P6 choose File > Export > Spreadsheet (XLSX).');
-  return readXlsx(data);
 }
