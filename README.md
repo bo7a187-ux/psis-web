@@ -1,4 +1,4 @@
-# Project Schedule Intelligence (web)
+# Masar Schedule (web) - مسار الجدول الزمني
 
 Browser-only version of the Excel tool *Project Schedule Intelligence System*:
 Primavera P6 schedule analysis and management reporting.

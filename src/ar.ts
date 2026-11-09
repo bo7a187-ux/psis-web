@@ -4,8 +4,7 @@
  */
 export const AR: Record<string, string> = {
   // ---------- shell & navigation
-  'Project Schedule Intelligence': 'محلّل الجداول الزمنية للمشاريع',
-  'Schedule Intelligence': 'محلّل الجداول الزمنية',
+  'Masar Schedule': 'مسار الجدول الزمني',
   'P6 analysis & reporting': 'تحليل وتقارير بريمافيرا P6',
   'by Hussain Alshaikh': 'تطوير: حسين الشيخ',
   'Home': 'الرئيسية',
@@ -907,7 +906,7 @@ export const AR: Record<string, string> = {
   'Data date is not set': 'تاريخ البيانات غير محدد',
   'Project not found.': 'المشروع غير موجود.',
   'This is not a valid project file (it could not be read as JSON).': 'هذا ليس ملف مشروع صالحًا (تعذّرت قراءته كـ JSON).',
-  'This file is not a Project Schedule Intelligence project file.': 'هذا الملف ليس ملف مشروع من هذا الموقع.',
+  'This file is not a Masar Schedule project file.': 'هذا الملف ليس ملف مشروع من هذا الموقع.',
   'This project file was made by a newer version of the app. Open it with the latest version.': 'ملف المشروع هذا أُنشئ بإصدار أحدث من الموقع. افتحه بأحدث إصدار.',
   'The project file is incomplete.': 'ملف المشروع غير مكتمل.',
   'The project file was changed or damaged after it was saved (checksum does not match). It was not imported.': 'تم تعديل ملف المشروع أو تلفه بعد حفظه (رمز التحقق غير مطابق). لم يتم استيراده.',

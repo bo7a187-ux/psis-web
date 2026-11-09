@@ -125,7 +125,7 @@ describe('Backup file', () => {
     const text = JSON.stringify(await exportProject(p.id));
     expect(() => parseBackup(text.replace('"name":"T"', '"name":"Tampered"'))).toThrow(/checksum/);
     expect(() => parseBackup('not json')).toThrow(BackupError);
-    expect(() => parseBackup('{"format":"other"}')).toThrow(/not a Project Schedule/);
+    expect(() => parseBackup('{"format":"other"}')).toThrow(/not a Masar Schedule/);
   });
   it('dates round trip', () => expect(fromYMD(2026, 11, 8)).toBe(46334));
 });

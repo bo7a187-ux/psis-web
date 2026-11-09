@@ -19,13 +19,13 @@ export async function exportProject(projectId: string): Promise<BackupFile> {
     log: await db.log.where('projectId').equals(projectId).toArray(),
   };
   await addLog(projectId, 'Backup exported', `${payload.snapshots.length} snapshot(s)`);
-  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), app: 'Project Schedule Intelligence', checksum: sha256(JSON.stringify(payload)), payload };
+  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), app: 'Masar Schedule', checksum: sha256(JSON.stringify(payload)), payload };
 }
 
 export function parseBackup(text: string): BackupFile {
   let f: BackupFile;
   try { f = JSON.parse(text); } catch { throw new BackupError('This is not a valid project file (it could not be read as JSON).'); }
-  if (f?.format !== BACKUP_FORMAT) throw new BackupError('This file is not a Project Schedule Intelligence project file.');
+  if (f?.format !== BACKUP_FORMAT) throw new BackupError('This file is not a Masar Schedule project file.');
   if (typeof f.version !== 'number' || f.version > BACKUP_VERSION) throw new BackupError('This project file was made by a newer version of the app. Open it with the latest version.');
   if (!f.payload?.project) throw new BackupError('The project file is incomplete.');
   if (sha256(JSON.stringify(f.payload)) !== f.checksum) throw new BackupError('The project file was changed or damaged after it was saved (checksum does not match). It was not imported.');

@@ -50,7 +50,7 @@ function apply(l: Lang) {
   const html = document.documentElement;
   html.lang = l;
   html.dir = l === 'ar' ? 'rtl' : 'ltr';
-  document.title = t('Project Schedule Intelligence');
+  document.title = t('Masar Schedule');
 }
 
 const C = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({ lang: current, setLang: () => {} });

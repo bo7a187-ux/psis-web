@@ -64,7 +64,7 @@ export function App() {
       <aside className="side">
         <button className="brand" onClick={() => setPage('home')}>
           <BrandMark />
-          <span>{t("Schedule Intelligence")}<small>{t("P6 analysis & reporting")}</small></span>
+          <span>{t('Masar Schedule')}<small>{t("P6 analysis & reporting")}</small></span>
         </button>
         <button className={`nav-btn ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}><Icon name="home" />{t("Home")}</button>
         <div className="nav-group">{t("Monthly workflow")}</div>
