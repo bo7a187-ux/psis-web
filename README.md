@@ -33,6 +33,15 @@ from the Primary / Secondary Constraint columns (`src/core/logic.ts`). Checks th
 file does not hold are shown as "not available" with the reason; the critical path test needs P6.
 This never changes progress figures or the approval fingerprint.
 
+## Actual progress entered in the app
+`src/core/progress.ts`: the engineer can type the actual % per activity (page "Enter actual progress").
+Entries replace the field chosen as "Actual % source", are kept across re-imports, and belong to one
+data date, so a new month starts clean. They are part of the data, so they change the fingerprint.
+
+## Rules from the WBS
+`src/core/wbsRules.ts`: one click on Classification writes rules from WBS level 1 / level 2 (e.g.
+Phase / Building, level 2 limited to one branch) plus a final "General" rule, so nothing stays unclassified.
+
 ## Owner settings (`src/config.ts`)
 - `TEAM_EMAIL`, `TEAM_LINKEDIN`: contact buttons of the "team version" card; empty = hidden.
 - `GOATCOUNTER_CODE`: GoatCounter code for anonymous visit counting (page name only, no cookies,

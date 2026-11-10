@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../state';
 import { PageHead } from '../common';
+import { WbsRulesCard } from '../WbsRulesCard';
 import { DIMENSIONS, DIM_LABEL, RULE_FIELDS, RULE_TYPES, UNCLASSIFIED, ruleMatchCounts, type ClassificationConfig, type Dimension, type Rule, type Override } from '../../core/classify';
 import { t, tr } from '../../i18n';
 
@@ -37,6 +38,7 @@ export function ClassificationPage() {
       {DIMENSIONS.map((d) => <datalist key={d} id={`dl-${d}`}>{cfg.lists[d].map((v) => <option key={v} value={v} />)}</datalist>)}
       <datalist id="dl-ids">{ids.map((i) => <option key={i} value={i} />)}</datalist>
 
+      <WbsRulesCard />
       <div className="card">
         <h2>{t("Lists of values")}</h2>
         <p className="small muted">{t("The values used on dashboards and filters. Rules and overrides should use these exact values; anything else is flagged on Validation.")}</p>

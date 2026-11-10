@@ -14,11 +14,12 @@ import { fingerprint, approvalStatus, type ApprovalStatus } from './core/fingerp
 import { summarize, NO_FILTER, type ProjectSummary, type Filters } from './core/project';
 import type { Snapshot } from './core/snapshot';
 import { readWorkbookFile } from './core/readFile';
+import { applyProgress } from './core/progress';
 import { SAMPLE_DATA_DATE, SAMPLE_FILE_NAME, SAMPLE_TITLE, sampleClassification, sampleFileBytes, sampleHistory } from './sample/sample';
 
 export type Page =
   | 'home' | 'import' | 'mapping' | 'validation' | 'classification' | 'settings' | 'activities' | 'results'
-  | 'exec' | 'control' | 'delay' | 'quality' | 'history' | 'baselines' | 'report' | 'audit';
+  | 'progress' | 'exec' | 'control' | 'delay' | 'quality' | 'history' | 'baselines' | 'report' | 'audit';
 
 interface Derived {
   imp: ImportResult | null;
@@ -218,7 +219,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const dd = project.settings.dataDate;
     const prevSnap = dd == null ? null : [...history].filter((h) => h.dataDate < dd && h.activities.length).sort((a, b) => b.dataDate - a.dataDate)[0] ?? null;
     const prev = prevSnap ? new Map<string, PrevSnapshotRow>(prevSnap.activities.map((a) => [a.id.toLowerCase(), { actual: a.actual, blFinish: a.blFinish }])) : undefined;
-    const imp = runImport(sheet.rows, sheet.name, stored.date1904, project.mapping, project.importOptions);
+    const imp0 = runImport(sheet.rows, sheet.name, stored.date1904, project.mapping, project.importOptions);
+    const imp = { ...imp0, activities: applyProgress(imp0.activities, project.progress, project.settings.dataDate, project.settings.actualSource).activities };
     let rows: CalcRow[] | null = null;
     let calcError: string | null = null;
     if (project.settings.dataDate == null) calcError = 'Set the data date to run the calculations.';

@@ -31,6 +31,8 @@ export interface Project {
   baselines: Baselines;
   /** free text shown in the Comments box of the monthly report (display only) */
   reportComment?: string;
+  /** actual % entered in the app, by Activity ID (lower case) */
+  progress?: import('../core/progress').ProgressEntries;
 }
 
 export interface StoredImport {

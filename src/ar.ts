@@ -967,6 +967,38 @@ export const AR: Record<string, string> = {
   'Hello, I am interested in the team version of Masar Schedule.\nName:\nCompany:\nNumber of users:': 'السلام عليكم، أنا مهتم بنسخة الفريق من مسار الجدول الزمني.\nالاسم:\nالشركة:\nعدد المستخدمين:',
   'Only an anonymous visit count is recorded: the page name, with no schedule data and no cookies.': 'يُسجَّل فقط عدد زيارات مجهول: اسم الصفحة فقط، بدون أي بيانات من الجدول وبدون كوكيز.',
 
+  // ---------- actual progress entry
+  'Enter actual progress': 'إدخال الإنجاز الفعلي',
+  'Type the actual % agreed on site for each activity. Your value replaces the {field} value from the P6 file for this data date ({dd}) only, and it is kept when you import the file again. A new data date starts clean.': 'اكتب نسبة الإنجاز الفعلية المعتمدة في الموقع لكل نشاط. قيمتك تحل محل قيمة {field} من ملف P6 لتاريخ البيانات هذا ({dd}) فقط، وتبقى محفوظة لو استوردت الملف مرة ثانية. تاريخ بيانات جديد يبدأ بدون إدخالات.',
+  'Entered for this data date': 'المُدخل لتاريخ البيانات هذا',
+  'Activities shown': 'الأنشطة المعروضة',
+  'Open activities': 'الأنشطة المفتوحة',
+  'Entered by me': 'اللي أدخلتها',
+  'Remove all my entries for this data date': 'حذف كل إدخالاتي لتاريخ البيانات هذا',
+  'P6 value': 'قيمة P6',
+  'Actual % (yours)': 'النسبة الفعلية (إدخالك)',
+  'replaced': 'مستبدلة',
+  'Use P6 value': 'رجوع لقيمة P6',
+  'Values save when you leave the box or press Enter. 100% marks the activity completed; above 0% marks it in progress. Entries change the data, so an approval must be given again.': 'القيمة تنحفظ لما تطلع من الخانة أو تضغط Enter. 100% يجعل النشاط مكتملًا، وأكثر من 0% يجعله قيد التنفيذ. الإدخال يغيّر البيانات، فيلزم اعتمادها من جديد.',
+
+  // ---------- rules from the WBS
+  'Quick start: rules from the WBS': 'بداية سريعة: قواعد من هيكل WBS',
+  'Most schedules already hold the phase and the building in the WBS. Choose what each level means and the rules are written for you; you can edit them below.': 'أغلب الجداول فيها المرحلة والمبنى داخل هيكل WBS. اختر وش يمثل كل مستوى، وتنكتب القواعد تلقائيًا، وتقدر تعدلها تحت.',
+  'WBS level 1 is the': 'المستوى الأول من WBS هو',
+  'WBS level 2 is the': 'المستوى الثاني من WBS هو',
+  'Level 2 only inside': 'المستوى الثاني داخل',
+  'All of the WBS': 'كل الهيكل',
+  '- not used -': '- غير مستخدم -',
+  'Create rules': 'إنشاء القواعد',
+  '{n} rules added.': 'أُضيفت قواعد: {n}.',
+
+  'Your last backup from this browser is more than 30 days old.': 'آخر نسخة احتياطية من هذا المتصفح أقدم من 30 يومًا.',
+  'This project has no backup yet. If the browser data is cleared, the work is lost.': 'هذا المشروع ما له نسخة احتياطية. إذا انمسحت بيانات المتصفح يضيع الشغل.',
+  'Save backup now': 'احفظ نسخة الآن',
+  'Later': 'لاحقًا',
+
+  "Tip: import the first approved (not yet progressed) schedule, save it on the {page} page as the Original baseline, then import this month's file. Planned % and delays are then measured against the original plan, even when P6 has no baseline.": 'نصيحة: استورد أول جدول معتمد (قبل أي تحديث للإنجاز)، واحفظه في صفحة {page} كخط أساس أصلي، وبعدها استورد ملف هذا الشهر. بكذا تنحسب النسبة المخططة والتأخير مقابل الخطة الأصلية، حتى لو ما فيه خط أساس في P6.',
+
   // ---------- files, errors and notes from the core
   'Old-style Excel .xls file.': 'ملف إكسل قديم بصيغة ‎.xls.',
   'This is not a Primavera P6 XER file (the ERMHDR header is missing).': 'هذا ليس ملف XER من بريمافيرا P6 (ترويسة ERMHDR غير موجودة).',

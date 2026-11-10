@@ -75,6 +75,9 @@ export function ImportPage() {
               {fallbacks.map((f) => (
                 <CheckLine key={f.key} warn>{t(f.label)}: {t(imp.matches[f.key].note ?? '')}</CheckLine>
               ))}
+              {fallbacks.length > 0 && !project.baselines.original && (
+                <CheckLine warn>{tr('Tip: import the first approved (not yet progressed) schedule, save it on the {page} page as the Original baseline, then import this month\'s file. Planned % and delays are then measured against the original plan, even when P6 has no baseline.', { page: <button className="link-btn" onClick={() => app.setPage('baselines')}>{t('Baselines')}</button> })}</CheckLine>
+              )}
               <CheckLine ok={unread === 0} warn={unread > 0}>
                 {unread === 0 ? t('Every value could be read') : tr('{n} values could not be read - listed on the Validation page', { n: <b>{unread}</b> })}
               </CheckLine>

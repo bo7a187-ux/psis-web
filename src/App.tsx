@@ -12,7 +12,9 @@ import { ExecutiveDashboardPage } from './ui/pages/ExecutiveDashboardPage';
 import { ScheduleControlPage } from './ui/pages/ScheduleControlPage';
 import { DelayAnalysisPage } from './ui/pages/DelayAnalysisPage';
 import { QualityPage } from './ui/pages/QualityPage';
+import { ProgressPage } from './ui/pages/ProgressPage';
 import { VisitCounter } from './ui/VisitCounter';
+import { BackupReminder } from './ui/BackupCard';
 import { HistoryPage } from './ui/pages/HistoryPage';
 import { BaselinesPage } from './ui/pages/BaselinesPage';
 import { ReportPage } from './ui/pages/ReportPage';
@@ -77,6 +79,8 @@ export function App() {
             <span className="num">{done[w.p] ? <Icon name="check" size={12} stroke={3} /> : i + 1}</span>{t(w.label)}
           </button>
         ))}
+        <button className={`nav-btn ${page === 'progress' ? 'active' : ''}`} disabled={needsProject || !app.imp} onClick={() => setPage('progress')}>
+          <Icon name="sliders" />{t('Enter actual progress')}</button>
         <button className={`nav-btn ${page === 'activities' ? 'active' : ''}`} disabled={needsProject} onClick={() => setPage('activities')}>
           <Icon name="table" />{t("Activities (data)")}</button>
         <div className="nav-group">{t("Reports")}</div>
@@ -109,6 +113,7 @@ export function App() {
           <LangSwitch />
         </div>
         <div className="content">
+          {app.ready && page !== 'home' && page !== 'exec' && <BackupReminder />}
           {!app.ready ? <div className="muted">{t("Loading…")}</div> : <Router page={page} />}
           <footer className="site-credit no-print">{t('by Hussain Alshaikh')}</footer>
         </div>
@@ -132,6 +137,7 @@ function Router({ page }: { page: Page }) {
     case 'control': return <ScheduleControlPage />;
     case 'delay': return <DelayAnalysisPage />;
     case 'quality': return <QualityPage />;
+    case 'progress': return <ProgressPage />;
     case 'audit': return <CalculationAuditPage />;
     case 'report': return <ReportPage />;
     case 'history': return <HistoryPage />;

@@ -192,7 +192,8 @@ export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData
   for (const p of reportProjects) projRows.push([p.proj_short_name, longName.get(p.proj_id) ?? '', d(xerDate(p.last_recalc_date))]);
 
   return {
-    sheets: [{ name: 'TASK (XER)', rows: [header, ...rows] }, { name: 'PROJECT (XER)', rows: projRows }, { name: 'TASKPRED (XER)', rows: predRows }],
+    sheets: [{ name: 'TASK (XER)', rows: [header, ...rows] }, { name: 'PROJECT (XER)', rows: projRows }, { name: 'TASKPRED (XER)', rows: predRows },
+      { name: 'PROJWBS (XER)', rows: [['WBS Code', 'WBS Name'], ...(t.PROJWBS ?? []).filter((w) => reportIds.has(w.proj_id)).map((w) => [wbsCode(w.wbs_id), w.wbs_name] as RawCell[])] }],
     date1904: false,
     encoding,
     projects: reportProjects.map((p) => p.proj_short_name),
