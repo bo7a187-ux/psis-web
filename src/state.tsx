@@ -15,6 +15,7 @@ import { summarize, NO_FILTER, type ProjectSummary, type Filters } from './core/
 import type { Snapshot } from './core/snapshot';
 import { readWorkbookFile } from './core/readFile';
 import { applyProgress } from './core/progress';
+import type { Activity } from './core/types';
 import { SAMPLE_DATA_DATE, SAMPLE_FILE_NAME, SAMPLE_TITLE, sampleClassification, sampleFileBytes, sampleHistory } from './sample/sample';
 
 export type Page =
@@ -23,6 +24,8 @@ export type Page =
 
 interface Derived {
   imp: ImportResult | null;
+  /** activities exactly as in the file, before actual % entered in the app */
+  fileActivities: Activity[] | null;
   rows: CalcRow[] | null;
   calcError: string | null;
   report: ValidationReport | null;
@@ -214,7 +217,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [project, reloadList, selectProject]);
 
   const derived = useMemo<Derived>(() => {
-    if (!project || !stored) return { imp: null, rows: null, calcError: null, report: null, liveFingerprint: null, approval: 'BLOCKED', summary: null };
+    if (!project || !stored) return { imp: null, fileActivities: null, rows: null, calcError: null, report: null, liveFingerprint: null, approval: 'BLOCKED', summary: null };
     const sheet = stored.sheets[stored.sheetIndex] ?? stored.sheets[0];
     const dd = project.settings.dataDate;
     const prevSnap = dd == null ? null : [...history].filter((h) => h.dataDate < dd && h.activities.length).sort((a, b) => b.dataDate - a.dataDate)[0] ?? null;
@@ -240,7 +243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const liveFingerprint = rows ? fingerprint(rows, project.settings) : null;
     const approval = approvalStatus(report.criticalCount, project.approval?.fingerprint, liveFingerprint);
     const summary = rows ? summarize(rows, project.settings) : null;
-    return { imp, rows, calcError, report, liveFingerprint, approval, summary };
+    return { imp, fileActivities: imp0.activities, rows, calcError, report, liveFingerprint, approval, summary };
   }, [project, stored, history]);
 
   const approve = useCallback(async (reviewer: string, note: string) => {

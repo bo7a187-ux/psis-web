@@ -999,6 +999,32 @@ export const AR: Record<string, string> = {
 
   "Tip: import the first approved (not yet progressed) schedule, save it on the {page} page as the Original baseline, then import this month's file. Planned % and delays are then measured against the original plan, even when P6 has no baseline.": 'نصيحة: استورد أول جدول معتمد (قبل أي تحديث للإنجاز)، واحفظه في صفحة {page} كخط أساس أصلي، وبعدها استورد ملف هذا الشهر. بكذا تنحسب النسبة المخططة والتأخير مقابل الخطة الأصلية، حتى لو ما فيه خط أساس في P6.',
 
+  // ---------- progress: quick entry and Excel round trip
+  'Update from Excel': 'التحديث من الإكسل',
+  'Download the list, fill the Actual % column in Excel (or send it to the site engineers), then upload it. You see every change before it is applied.': 'نزّل القائمة، وعبّ عمود النسبة الفعلية في الإكسل (أو أرسله لمهندسي الموقع)، وبعدها ارفعه. تشوف كل تغيير قبل ما يتطبق.',
+  'Download template ({n} activities)': 'تنزيل النموذج ({n} نشاط)',
+  'Upload filled file': 'رفع الملف المعبأ',
+  'Check before applying': 'راجع قبل التطبيق',
+  '{n} activities will be updated': 'أنشطة سيتم تحديثها: {n}',
+  '{n} unchanged': 'بدون تغيير: {n}',
+  '{n} change by more than 30 points - please check them (marked below)': 'تغيّرت بأكثر من 30 نقطة: {n} - راجعها (مظللة تحت)',
+  '{n} Activity IDs are not in this schedule and are skipped:': 'رموز أنشطة غير موجودة في هذا الجدول وتم تجاهلها: {n}:',
+  '{n} values could not be read and are skipped:': 'قيم تعذّرت قراءتها وتم تجاهلها: {n}:',
+  'The file was made for data date {a}, the project is on {b}.': 'الملف مسوّى لتاريخ البيانات {a}، والمشروع حاليًا على {b}.',
+  'Now': 'الحالي',
+  'New': 'الجديد',
+  'Apply {n} changes': 'تطبيق التغييرات ({n})',
+  '{n} activities updated from the file.': 'تم تحديث أنشطة من الملف: {n}.',
+  'The file has no "Activity ID" and "Actual %" columns. Use the template from this page.': 'الملف ما فيه عمود "رمز النشاط" وعمود "النسبة الفعلية". استخدم النموذج من هذه الصفحة.',
+  '{n} values pasted.': 'تم لصق قيم: {n}.',
+  '{n} could not be read.': 'تعذّرت قراءة: {n}.',
+  'Tip: press Enter to jump to the next activity, or paste a whole column copied from Excel into the first box.': 'نصيحة: اضغط Enter للانتقال للنشاط اللي بعده، أو الصق عمود كامل منسوخ من الإكسل في أول خانة.',
+  'Quick': 'سريع',
+  'Actual % (enter)': 'النسبة الفعلية (أدخلها)',
+  'Item': 'البند',
+  'How to fill': 'طريقة التعبئة',
+  'Write the actual % (0-100) in the last column only for activities that changed, save, and upload the file on the Enter actual progress page. Empty cells keep their value.': 'اكتب النسبة الفعلية (من 0 إلى 100) في العمود الأخير للأنشطة اللي تغيرت فقط، واحفظ الملف، وارفعه من صفحة إدخال الإنجاز الفعلي. الخانات الفاضية تبقى على قيمتها.',
+
   // ---------- files, errors and notes from the core
   'Old-style Excel .xls file.': 'ملف إكسل قديم بصيغة ‎.xls.',
   'This is not a Primavera P6 XER file (the ERMHDR header is missing).': 'هذا ليس ملف XER من بريمافيرا P6 (ترويسة ERMHDR غير موجودة).',
