@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../state';
-import { PageHead, SevBadge, Stat } from '../common';
+import { PageHead, SevBadge, Stat, Limited } from '../common';
 import { FIELD_BY_KEY } from '../../core/fields';
 import type { Check } from '../../core/validate';
 import { t, tr } from '../../i18n';
@@ -64,31 +64,31 @@ export function ValidationPage() {
       <div className="card">
         <h2>{t('Values that could not be read ({n})', { n: report.cellIssues.length })}</h2>
         {report.cellIssues.length === 0 ? <p className="muted">{t("None. Every date, number and percentage in the mapped columns was read.")}</p> : (
-          <div className="table-wrap tall">
+          <Limited list={report.cellIssues} resetKey={''}>{(shown, more) => (<div className="table-wrap tall">
             <table className="t">
               <thead><tr><th>{t("Sheet row")}</th><th>{t("Column")}</th><th>{t("Activity ID")}</th><th>{t("Field")}</th><th>{t("Value in file")}</th><th>{t("Problem")}</th><th>{t("Severity")}</th></tr></thead>
               <tbody>
-                {report.cellIssues.map((c, i) => (
+                {shown.map((c, i) => (
                   <tr key={i}>
                     <td className="num">{c.row}</td><td>{c.column}</td><td className="nowrap">{c.activityId}</td><td className="nowrap">{t(FIELD_BY_KEY[c.field].label)}</td>
                     <td className="mono">{c.value}</td><td>{t(c.problem)}</td><td><SevBadge s={c.severity} /></td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </table>{more}
+          </div>)}</Limited>
         )}
       </div>
 
       <div className="card">
         <h2>{t('Activities with issues ({n})', { n: report.activityIssues.length })}</h2>
         {report.activityIssues.length === 0 ? <p className="muted">{t("None.")}</p> : (
-          <div className="table-wrap tall">
+          <Limited list={report.activityIssues} resetKey={''}>{(shown, more) => (<div className="table-wrap tall">
             <table className="t">
               <thead><tr><th>{t("Activity ID")}</th><th>{t("Sheet row")}</th><th>{t("Issues")}</th></tr></thead>
-              <tbody>{report.activityIssues.map((a) => <tr key={a.row}><td className="nowrap">{a.id || t('(no ID)')}</td><td className="num">{a.row}</td><td className="small">{a.issues.map((x) => t(x)).join(' · ')}</td></tr>)}</tbody>
-            </table>
-          </div>
+              <tbody>{shown.map((a) => <tr key={a.row}><td className="nowrap">{a.id || t('(no ID)')}</td><td className="num">{a.row}</td><td className="small">{a.issues.map((x) => t(x)).join(' · ')}</td></tr>)}</tbody>
+            </table>{more}
+          </div>)}</Limited>
         )}
       </div>
     </>

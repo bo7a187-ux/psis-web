@@ -29,6 +29,6 @@ export function floatErosion(rows: CalcRow[], prev: Snapshot | null): FloatErosi
     if (change < -1e-9) eroded.push({ id: r.a.id, name: r.a.name, prev: p, now: r.tfDays!, change, critical: r.critical });
   }
   eroded.sort((a, b) => a.change - b.change || a.now - b.now);
-  const nowMin = open.length ? Math.min(...open.map((r) => r.tfDays!)) : null;
+  const nowMin = open.length ? open.reduce((m, r) => Math.min(m, r.tfDays!), Infinity) : null;
   return { prevDate: prev.dataDate, projectFloatNow: nowMin, projectFloatPrev: prev.summary.projectFloat ?? null, eroded, compared };
 }

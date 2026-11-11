@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../state';
-import { PageHead } from '../common';
+import { PageHead, Limited } from '../common';
 import { WbsRulesCard } from '../WbsRulesCard';
 import { DIMENSIONS, DIM_LABEL, RULE_FIELDS, RULE_TYPES, UNCLASSIFIED, ruleMatchCounts, type ClassificationConfig, type Dimension, type Rule, type Override } from '../../core/classify';
 import { t, tr } from '../../i18n';
@@ -125,11 +125,11 @@ export function ClassificationPage() {
       {unclassified.length > 0 && (
         <div className="card">
           <h2>{t('Activities that need classification ({n})', { n: unclassified.length })}</h2>
-          <div className="table-wrap tall" style={{ marginTop: 8 }}>
+          <Limited list={unclassified}>{(shown, more) => (<div className="table-wrap tall" style={{ marginTop: 8 }}>
             <table className="t">
               <thead><tr><th>{t("Activity ID")}</th><th>{t("Name")}</th><th>{t("WBS")}</th>{DIMENSIONS.map((d) => <th key={d}>{t(DIM_LABEL[d])}</th>)}<th /></tr></thead>
               <tbody>
-                {unclassified.map((r) => (
+                {shown.map((r) => (
                   <tr key={r.a.row}>
                     <td className="nowrap">{r.a.id}</td><td>{r.a.name}</td><td className="nowrap">{r.a.wbs}</td>
                     {DIMENSIONS.map((d) => <td key={d} className={r.cls[d] === UNCLASSIFIED ? 'warn' : ''}>{r.cls[d]}</td>)}
@@ -137,8 +137,8 @@ export function ClassificationPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </table>{more}
+          </div>)}</Limited>
         </div>
       )}
     </>

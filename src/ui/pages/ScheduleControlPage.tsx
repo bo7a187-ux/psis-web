@@ -3,7 +3,7 @@ import { getLang } from '../../i18n';
 import { fmtDate } from '../../core/dates';
 import { useApp } from '../../state';
 import { FilterBar } from '../FilterBar';
-import { PageHead, Stat, pct, pp, num, tjoin, fd, ltr } from '../common';
+import { PageHead, Stat, pct, pp, num, tjoin, fd, ltr, Limited } from '../common';
 import { summarize, groupTable, wbsTable, heatmap, inFilter, trendCompletion, type HeatValue } from '../../core/project';
 import { DIM_LABEL, type Dimension } from '../../core/classify';
 import { ApprovalBadge } from '../../App';
@@ -143,7 +143,7 @@ export function ScheduleControlPage() {
             return <td key={c} className={v === undefined ? 'dot' : ''} style={typeof v === 'number' ? { background: heatColor(v, hv) } : undefined}>{fmtCell(v)}</td>;
           })}</tr>)}</tbody>
         </table></div>
-        <p className="small muted">{t("\"·\" = no weighted activities in that cell.")}{' '}{hv === 'Variance (pp)' ? 'Green: on plan; orange: behind 0.5-10 pp; red: more than 10 pp behind.' : 'Darker blue = more complete.'} {t("Cells are weighted by the selected weighting method.")}</p>
+        <p className="small muted">{t("\"·\" = no weighted activities in that cell.")}{' '}{t(hv === 'Variance (pp)' ? 'Green: on plan; orange: behind 0.5-10 pp; red: more than 10 pp behind.' : 'Darker blue = more complete.')} {t("Cells are weighted by the selected weighting method.")}</p>
       </div>
 
       <div className="card">
@@ -156,11 +156,11 @@ export function ScheduleControlPage() {
 
       <div className="card">
         <div className="card-head"><h2>{t('Activity performance ({n})', { n: list.length })}</h2><input type="search" placeholder={t("Search ID or name…")} value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} /></div>
-        <div className="table-wrap tall"><table className="t">
+        <Limited list={list} resetKey={q}>{(shown, more) => (<div className="table-wrap tall"><table className="t">
           <thead><tr><th>{t("Activity")}</th><th>{t("BL start")}</th><th>{t("BL finish")}</th><th>{t("Start")}</th><th>{t("Finish")}</th><th>{t("Actual start")}</th><th>{t("Actual finish")}</th><th className="num">{t("Planned")}</th><th className="num">{t("Actual")}</th><th className="num">{t("Var (pp)")}</th><th className="num">{t("Rem. dur (d)")}</th><th className="num">{t("TF (d)")}</th><th>{t("Critical")}</th><th>{t("Status")}</th></tr></thead>
-          <tbody>{list.map((r) => <tr key={r.a.row}><td className="nowrap">{r.a.id} {r.a.name}</td><td className="nowrap">{dd(r.blStart)}</td><td className="nowrap">{dd(r.blFinish)}</td><td className="nowrap">{dd(r.a.start)}</td><td className="nowrap">{dd(r.a.finish)}</td><td className="nowrap">{dd(r.a.actStart)}</td><td className="nowrap">{dd(r.a.actFinish)}</td>
+          <tbody>{shown.map((r) => <tr key={r.a.row}><td className="nowrap">{r.a.id} {r.a.name}</td><td className="nowrap">{dd(r.blStart)}</td><td className="nowrap">{dd(r.blFinish)}</td><td className="nowrap">{dd(r.a.start)}</td><td className="nowrap">{dd(r.a.finish)}</td><td className="nowrap">{dd(r.a.actStart)}</td><td className="nowrap">{dd(r.a.actFinish)}</td>
             <td className="num">{pct(r.planned, 0)}</td><td className="num">{pct(r.actual, 0)}</td><td className="num">{pp(r.variance, 0)}</td><td className="num">{num(r.a.remDur, 1)}</td><td className="num">{num(r.tfDays, 1)}</td><td>{r.critical ? t('Yes') : ''}</td><td>{t(r.performance)}</td></tr>)}</tbody>
-        </table></div>
+        </table>{more}</div>)}</Limited>
       </div>
     </>
   );

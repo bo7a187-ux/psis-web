@@ -129,7 +129,7 @@ export function detectHeader(rows: Grid, saved: SavedMapping, forced: 'auto' | 1
 
 export function scalePct(values: number[]): { scale: 1 | 100; note?: string } {
   if (!values.length) return { scale: 1 };
-  const max = Math.max(...values);
+  const max = values.reduce((m, v) => Math.max(m, v), -Infinity);
   if (max > 1) return { scale: 100 };
   const allZeroOne = values.every((v) => v === 0 || v === 1);
   if (allZeroOne && values.some((v) => v === 1))

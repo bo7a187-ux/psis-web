@@ -216,13 +216,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPage('home');
   }, [project, reloadList, selectProject]);
 
-  const derived = useMemo<Derived>(() => {
-    if (!project || !stored) return { imp: null, fileActivities: null, rows: null, calcError: null, report: null, liveFingerprint: null, approval: 'BLOCKED', summary: null };
+  // reading the file is the slow part for a large schedule: only redo it when the file or the mapping
+  // changes, not on every progress entry or setting
+  const mapping = project?.mapping, importOptions = project?.importOptions;
+  const imp0 = useMemo(() => {
+    if (!stored || !mapping || !importOptions) return null;
     const sheet = stored.sheets[stored.sheetIndex] ?? stored.sheets[0];
+    return runImport(sheet.rows, sheet.name, stored.date1904, mapping, importOptions);
+  }, [stored, mapping, importOptions]);
+
+  const derived = useMemo<Derived>(() => {
+    if (!project || !stored || !imp0) return { imp: null, fileActivities: null, rows: null, calcError: null, report: null, liveFingerprint: null, approval: 'BLOCKED', summary: null };
     const dd = project.settings.dataDate;
     const prevSnap = dd == null ? null : [...history].filter((h) => h.dataDate < dd && h.activities.length).sort((a, b) => b.dataDate - a.dataDate)[0] ?? null;
     const prev = prevSnap ? new Map<string, PrevSnapshotRow>(prevSnap.activities.map((a) => [a.id.toLowerCase(), { actual: a.actual, blFinish: a.blFinish }])) : undefined;
-    const imp0 = runImport(sheet.rows, sheet.name, stored.date1904, project.mapping, project.importOptions);
     const imp = { ...imp0, activities: applyProgress(imp0.activities, project.progress, project.settings.dataDate, project.settings.actualSource).activities };
     let rows: CalcRow[] | null = null;
     let calcError: string | null = null;
@@ -244,7 +251,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const approval = approvalStatus(report.criticalCount, project.approval?.fingerprint, liveFingerprint);
     const summary = rows ? summarize(rows, project.settings) : null;
     return { imp, fileActivities: imp0.activities, rows, calcError, report, liveFingerprint, approval, summary };
-  }, [project, stored, history]);
+  }, [project, stored, history, imp0]);
 
   const approve = useCallback(async (reviewer: string, note: string) => {
     if (!project || !derived.liveFingerprint || derived.report?.criticalCount) return;

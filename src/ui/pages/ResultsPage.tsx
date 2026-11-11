@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../state';
-import { PageHead, Stat, pct, pp, num, dateTime, delayText, tjoin, fd, ltr } from '../common';
+import { PageHead, Stat, pct, pp, num, dateTime, delayText, tjoin, fd, ltr, Limited } from '../common';
 import { groupTable, exceptionList, EXCEPTION_TYPES, NO_FILTER, type ExceptionType } from '../../core/project';
 import { DIMENSIONS, DIM_LABEL } from '../../core/classify';
 import { earnedSchedule } from '../../core/earnedSchedule';
@@ -62,7 +62,7 @@ export function ResultsPage() {
         <Stat k={t("In progress")} v={s.inProgress} />
         <Stat k={t("Not started")} v={s.notStarted} />
         <Stat k={t("Delayed")} v={s.delayed} tone={s.delayed ? 'warn' : undefined} sub={t("behind or late")} />
-        <Stat k={t("Critical (open)")} v={s.critical} sub={`${s.negFloat} with negative float`} />
+        <Stat k={t("Critical (open)")} v={s.critical} sub={t('{n} with negative float', { n: s.negFloat })} />
       </div>
 
       <div className="grid2" style={{ marginTop: 16 }}>
@@ -120,14 +120,14 @@ export function ResultsPage() {
           <select value={exc} onChange={(e) => setExc(e.target.value as ExceptionType)}>{EXCEPTION_TYPES.map((x) => <option key={x} value={x}>{t(x)}</option>)}</select>
         </div>
         <p className="small muted">{t('{n} activities.', { n: exRows.length })} {t('"Var (pp)" is percentage points behind plan; "Delay (d)" is calendar days between forecast and baseline finish - an activity can be behind in % and still finish on time, or the reverse.')}</p>
-        <div className="table-wrap tall"><table className="t">
+        <Limited list={exRows} resetKey={exc}>{(shown, more) => (<div className="table-wrap tall"><table className="t">
           <thead><tr><th>{t("Activity ID")}</th><th>{t("Name")}</th><th className="num">{t("Planned")}</th><th className="num">{t("Actual")}</th><th className="num">{t("Var (pp)")}</th><th>{t("BL finish")}</th><th>{t("Fc: P6")}</th><th>{t("Fc: Perf.")}</th><th>{t("Fc: Cons.")}</th><th>{t("Source")}</th><th className="num">{t("Delay (d)")}</th><th className="num">{t("TF")}</th><th>{t("Indicator")}</th></tr></thead>
-          <tbody>{exRows.map((r) => (
+          <tbody>{shown.map((r) => (
             <tr key={r.a.row}><td className="nowrap">{r.a.id}</td><td>{r.a.name}</td><td className="num">{pct(r.planned, 0)}</td><td className="num">{pct(r.actual, 0)}</td><td className="num">{pp(r.variance, 0)}</td>
               <td className="nowrap">{fd(r.blFinish)}</td><td className="nowrap">{fd(r.fcP6)}</td><td className="nowrap">{fd(r.fcPerf)}</td><td className="nowrap">{fd(r.fcCons)}</td>
               <td className="small">{t(r.fcSource)}</td><td className="num">{r.finishVarUsed ?? ''}</td><td className="num">{num(r.tfDays, 0)}</td><td className="small">{t(r.delayIndicator)}</td></tr>
           ))}</tbody>
-        </table></div>
+        </table>{more}</div>)}</Limited>
       </div>
     </>
   );

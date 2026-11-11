@@ -32,8 +32,8 @@ export function earnedSchedule(all: CalcRow[], f: Filters, actual: number | null
   const rows = all.filter((r) => inFilter(r, f) && r.hasBL && r.blStart != null && r.blFinish != null && r.blStart > 0);
   const sw = rows.reduce((n, r) => n + r.weight, 0);
   if (!rows.length || sw <= 0 || actual == null) return null;
-  const start = Math.min(...rows.map((r) => r.blStart!));
-  const plannedFinish = Math.max(...rows.map((r) => r.blFinish!)) + 1; // planned reaches 100% the day after the last baseline finish
+  const start = rows.reduce((m, r) => Math.min(m, r.blStart!), Infinity);
+  const plannedFinish = rows.reduce((m, r) => Math.max(m, r.blFinish!), -Infinity) + 1; // planned reaches 100% the day after the last baseline finish
   const at = dataDate - start;
   if (at <= 0) return null;
   let es: number;

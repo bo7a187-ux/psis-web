@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useApp } from '../../state';
-import { PageHead, Stat, pct, fd, downloadBytes } from '../common';
+import { PageHead, Stat, pct, fd, downloadBytes, Limited } from '../common';
 import { t, tr } from '../../i18n';
 import { ACTUAL_FIELD } from '../../core/settings';
 import { fmtDate } from '../../core/dates';
@@ -194,12 +194,12 @@ export function ProgressPage() {
         {entered > 0 && <button className="btn small danger" onClick={clearAll}>{t('Remove all my entries for this data date')}</button>}
       </div>
       <p className="small muted" style={{ margin: '0 0 8px' }}>{t('Tip: press Enter to jump to the next activity, or paste a whole column copied from Excel into the first box.')}</p>
-      <div className="table-wrap tall">
+      <Limited list={list} resetKey={q + show}>{(shown, more) => (<div className="table-wrap tall">
         <table className="t progress-t">
           <thead><tr><th>{t('Activity ID')}</th><th>{t('Activity Name')}</th><th>{t('WBS')}</th><th>{t('Status')}</th><th className="num">{t('P6 value')}</th><th>{t('Quick')}</th><th style={{ width: 130 }}>{t('Actual % (yours)')}</th><th /></tr></thead>
           <tbody>
             {list.length === 0 && <tr><td colSpan={8} className="muted">{t('None.')}</td></tr>}
-            {list.map((a, i) => {
+            {shown.map((a, i) => {
               const k = a.id.toLowerCase();
               const e = current(a.id);
               const now = value(a.id);
@@ -228,8 +228,8 @@ export function ProgressPage() {
               );
             })}
           </tbody>
-        </table>
-      </div>
+        </table>{more}
+      </div>)}</Limited>
       <p className="small muted" style={{ marginTop: 8 }}>{t('Values save when you leave the box or press Enter. 100% marks the activity completed; above 0% marks it in progress. Entries change the data, so an approval must be given again.')}</p>
     </>
   );

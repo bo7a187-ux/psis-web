@@ -129,6 +129,8 @@ textarea { width: 100%; resize: vertical; }
 
 .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; max-width: 100%; }
 .table-wrap.tall { max-height: 560px; }
+table.t td.name-col { min-width: 260px; }
+.more-rows { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: center; padding: 10px; border-top: 1px solid var(--line); }
 table.t { border-collapse: collapse; width: 100%; font-size: 13px; }
 table.t th { position: sticky; top: 0; background: var(--surface-2); text-align: start; font-weight: 650; color: var(--ink-2); font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(--line-2); white-space: nowrap; z-index: 1; }
 table.t td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -263,6 +265,10 @@ details > summary { cursor: pointer; }
   .hero h1 { font-size: 25px; }
   .hero-visual { display: none; }
   .drop { flex-direction: column; text-align: center; }
+  /* nothing may push the page sideways on a phone: wide tables scroll inside their card */
+  .card { overflow-x: auto; }
+  .field { min-width: 0; max-width: 100%; }
+  .field select, .field input, .row select { max-width: 100%; }
 }
 .modal-back { position: fixed; inset: 0; background: rgba(11, 23, 48, 0.5); backdrop-filter: blur(2px); display: flex; align-items: flex-start; justify-content: center; padding: 12vh 16px 16px; z-index: 50; }
 .modal { width: 100%; max-width: 460px; margin: 0; box-shadow: var(--shadow-lg); }
@@ -302,6 +308,10 @@ details > summary { cursor: pointer; }
 .exec table.t th { background: #1a2f5c; color: #b8c6e3; border-bottom-color: #2b4474; }
 .exec table.t td { border-bottom-color: #22386a; color: #e6edf9; }
 .exec table.t tr:hover td { background: #182c57; }
+@media (max-width: 860px) {
+  .exec { margin: -16px -16px -64px; padding: 16px 16px 64px; }
+  .exec-grid { grid-template-columns: minmax(0, 1fr); }
+}
 /* heatmap */
 .heat td, .heat th { text-align: center; padding: 8px 10px; border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .heat th { background: var(--surface-2); font-size: 12px; }

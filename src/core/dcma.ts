@@ -127,8 +127,8 @@ export function dcma(rows: CalcRow[], logic: ScheduleLogic, dataDate: Day, proje
 
   // 13: CPLI = (critical path length + total float) / critical path length
   const cpl = projectFinishP6 != null ? projectFinishP6 - dataDate : null;
-  const ptf = withTF.length ? Math.min(...withTF.filter((r) => r.critical || r.tfDays! <= 0).map((r) => r.tfDays!), Infinity) : null;
-  const ptfUsed = ptf == null || !Number.isFinite(ptf) ? (withTF.length ? Math.min(...withTF.map((r) => r.tfDays!)) : null) : ptf;
+  const ptf = withTF.length ? withTF.filter((r) => r.critical || r.tfDays! <= 0).reduce((m, r) => Math.min(m, r.tfDays!), Infinity) : null;
+  const ptfUsed = ptf == null || !Number.isFinite(ptf) ? (withTF.length ? withTF.reduce((m, r) => Math.min(m, r.tfDays!), Infinity) : null) : ptf;
   if (cpl != null && cpl > 0 && ptfUsed != null) {
     const v = (cpl + ptfUsed) / cpl;
     checks.push({ no: 13, id: 'cpli', name: 'CPLI', measure: 'Critical Path Length Index = (remaining critical path length + project total float) ÷ length', count: null, total: null, value: v, kind: 'index', target: '≥ 0.95', status: v >= 0.95 - 1e-9 ? 'pass' : 'fail', items: [] });

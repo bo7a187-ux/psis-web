@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../../state';
-import { PageHead, pct, num, fd } from '../common';
+import { PageHead, pct, num, fd, Limited } from '../common';
 import type { FieldKey } from '../../core/fields';
 import type { CalcRow } from '../../core/engine';
 import type { Activity } from '../../core/types';
@@ -60,22 +60,22 @@ export function ActivitiesPage() {
         <label className="row small"><input type="checkbox" checked={onlyIssues} onChange={(e) => setOnlyIssues(e.target.checked)} /> {t("Only rows with unreadable values")}</label>
         <span className="small muted">{t('{m} of {n} activities', { m: list.length, n: imp.activities.length })}</span>
       </div>
-      <div className="table-wrap tall">
+      <Limited list={list} resetKey={q + onlyIssues}>{(shown, more) => (<div className="table-wrap tall">
         <table className="t">
           <thead><tr>{COLS.map((c) => <th key={c.h} className={c.num ? 'num' : ''}>{t(c.h)}</th>)}</tr></thead>
           <tbody>
-            {list.map(({ a, r }) => (
+            {shown.map(({ a, r }) => (
               <tr key={a.row}>
                 {COLS.map((c) => {
                   const bad = c.k ? a.invalid[c.k] : undefined;
                   const unc = !c.k && r && r.included && c.v(a, r) === 'Unclassified';
-                  return <td key={c.h} className={`${c.num ? 'num' : ''} ${bad ? 'bad' : unc ? 'warn' : ''} ${c.h === 'Activity Name' ? '' : 'nowrap'}`} title={bad ? t(bad) : undefined}>{bad ? t('Invalid') : c.v(a, r)}</td>;
+                  return <td key={c.h} className={`${c.num ? 'num' : ''} ${bad ? 'bad' : unc ? 'warn' : ''} ${c.h === 'Activity Name' ? 'name-col' : 'nowrap'}`} title={bad ? t(bad) : undefined}>{bad ? t('Invalid') : c.v(a, r)}</td>;
                 })}
               </tr>
             ))}
           </tbody>
-        </table>
-      </div>
+        </table>{more}
+      </div>)}</Limited>
     </>
   );
 }

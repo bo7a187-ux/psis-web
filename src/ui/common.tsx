@@ -74,6 +74,34 @@ export function SevBadge({ s }: { s: 'Critical' | 'Warning' | 'Info' }) {
   return <span className={`badge ${s.toLowerCase()}`}>{t(s)}</span>;
 }
 
+/** Rows drawn at once in a long table: a 10 000-activity schedule stays quick to scroll and type in. */
+export const PAGE_ROWS = 300;
+/**
+ * First PAGE_ROWS of a list plus a "show more" bar. The count goes back to PAGE_ROWS when resetKey
+ * changes (a new search or filter), but not when the same list is recalculated after an entry.
+ */
+export function useLimit<T>(list: readonly T[], resetKey = ''): { shown: readonly T[]; more: ReactNode } {
+  const [st, setSt] = useState({ n: PAGE_ROWS, key: resetKey });
+  const n = st.key === resetKey ? st.n : PAGE_ROWS;
+  if (list.length <= n) return { shown: list, more: null };
+  return {
+    shown: list.slice(0, n),
+    more: (
+      <div className="more-rows">
+        <span className="small muted">{t('Showing {m} of {n}.', { m: n, n: list.length })}</span>
+        <button className="btn small" onClick={() => setSt({ n: n + PAGE_ROWS * 2, key: resetKey })}>{t('Show {k} more', { k: Math.min(PAGE_ROWS * 2, list.length - n) })}</button>
+        <button className="btn small" onClick={() => setSt({ n: Infinity, key: resetKey })}>{t('Show all ({n})', { n: list.length })}</button>
+      </div>
+    ),
+  };
+}
+
+/** useLimit as a component, for pages that return early before their tables (hooks cannot follow a return). */
+export function Limited<T>({ list, resetKey = '', children }: { list: readonly T[]; resetKey?: string; children: (shown: readonly T[], more: ReactNode) => ReactNode }) {
+  const { shown, more } = useLimit(list, resetKey);
+  return <>{children(shown, more)}</>;
+}
+
 export function PageHead({ title, children, right, step }: { title: string; children?: ReactNode; right?: ReactNode; step?: number }) {
   return (
     <div className="page-head">
