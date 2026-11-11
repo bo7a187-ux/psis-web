@@ -42,6 +42,14 @@ data date, so a new month starts clean. They are part of the data, so they chang
 `src/core/wbsRules.ts`: one click on Classification writes rules from WBS level 1 / level 2 (e.g.
 Phase / Building, level 2 limited to one branch) plus a final "General" rule, so nothing stays unclassified.
 
+## Timeline, Earned Schedule, float erosion
+- `GanttPage` + `src/core/gantt.ts`: read-only Gantt (group by WBS / phase / building…, actual % fill,
+  critical, completed, baseline bar, milestones, data date line, week/month/quarter scale).
+- `src/core/earnedSchedule.ts`: SPI(t), SV(t) and the time-based forecast finish from the baseline
+  curve - available without cost data.
+- `src/core/floatErosion.ts`: float of open activities compared with the previous snapshot
+  (snapshots now record float; older ones show a note instead).
+
 ## Owner settings (`src/config.ts`)
 - `TEAM_EMAIL`, `TEAM_LINKEDIN`: contact buttons of the "team version" card; empty = hidden.
 - `GOATCOUNTER_CODE`: GoatCounter code for anonymous visit counting (page name only, no cookies,

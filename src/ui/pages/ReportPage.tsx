@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useApp } from '../../state';
+import { earnedSchedule } from '../../core/earnedSchedule';
 import { pct, pp, num, tjoin, fd, ltr } from '../common';
 import { fmtDate } from '../../core/dates';
 import { summarize, groupTable, baselineCurve, snapshotActual, topDelayed, exceptionList, trendCompletion, NO_FILTER } from '../../core/project';
@@ -42,6 +43,7 @@ export function ReportPage() {
   const top = topDelayed(rows, NO_FILTER, 10);
   const crit = exceptionList(rows, st, NO_FILTER, 'Critical path (by forecast finish)').slice(0, 6);
   const trend = trendCompletion(sum.actual, DD, history, NO_FILTER);
+  const es = earnedSchedule(rows, NO_FILTER, sum.actual, DD);
   const prior = history.filter((h) => h.dataDate < DD).sort((a, b) => a.dataDate - b.dataDate);
   const actual: [number, number][] = [...prior.map((h) => [h.dataDate, snapshotActual(h, NO_FILTER)] as [number, number | null]).filter((p): p is [number, number] => p[1] != null), ...(sum.actual != null ? [[DD, sum.actual] as [number, number]] : [])];
   const dd = (x: number | null) => (x == null ? '-' : fd(x));
@@ -76,7 +78,7 @@ export function ReportPage() {
           <div><i>{t("Planned")}</i><b>{pct(sum.planned)}</b></div>
           <div><i>{t("Actual")}</i><b>{pct(sum.actual)}</b></div>
           <div><i>{t("Variance")}</i><b>{pp(sum.variance)}</b></div>
-          <div><i>{t("SPI (EV/PV)")}</i><b>{sum.spi != null ? sum.spi.toFixed(2) : t('N/A')}</b>{sum.spi == null && <small>{t(sum.spiReason)}</small>}</div>
+          <div><i>{t("SPI (EV/PV)")}</i><b>{sum.spi != null ? sum.spi.toFixed(2) : t('N/A')}</b>{sum.spi == null && <small>{t(sum.spiReason)}</small>}{es && <small>{ltr(`SPI(t) ${es.spiT.toFixed(2)}`)}</small>}</div>
           <div className={`h-${tone}`}><i>{t("Project health")}</i><b>{t(sum.health)}</b></div>
           <div><i>{t("Forecast finish")}</i><b>{dd(sum.forecastFinish)}</b><small>{sum.delayDays == null ? '' : sum.delayDays > 0 ? t('{n} days late', { n: sum.delayDays }) : sum.delayDays < 0 ? t('{n} days early', { n: -sum.delayDays }) : t('on baseline')}</small></div>
           <div><i>{t("Activities")}</i><b>{sum.total}</b><small>{t('{a} done · {b} in progress · {c} not started', { a: sum.completed, b: sum.inProgress, c: sum.notStarted })}</small></div>

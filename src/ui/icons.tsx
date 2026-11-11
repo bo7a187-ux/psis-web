@@ -26,6 +26,7 @@ const P: Record<string, string> = {
   calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   mail: 'M3.5 5.5h17v13h-17zM3.5 6l8.5 7 8.5-7',
   linkedin: 'M4 9v11M4 4.5v.01M9 20v-6.5a3.5 3.5 0 0 1 7 0V20M9 9v11M20 20v-6',
+  bars: 'M4 6.5h8M7 12h11M10 17.5h8M4 3v18',
   clipboard: 'M9 3.5h6v3H9zM7.5 5H5.5v16h13V5h-2M9 13.5l2 2 4-4.5',
   users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16 4.5a3.3 3.3 0 0 1 0 6.3M18 14.8c1.9.7 3 2.5 3 5.2',
 };

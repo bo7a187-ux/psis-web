@@ -12,6 +12,7 @@ import { ExecutiveDashboardPage } from './ui/pages/ExecutiveDashboardPage';
 import { ScheduleControlPage } from './ui/pages/ScheduleControlPage';
 import { DelayAnalysisPage } from './ui/pages/DelayAnalysisPage';
 import { QualityPage } from './ui/pages/QualityPage';
+import { GanttPage } from './ui/pages/GanttPage';
 import { ProgressPage } from './ui/pages/ProgressPage';
 import { VisitCounter } from './ui/VisitCounter';
 import { BackupReminder } from './ui/BackupCard';
@@ -36,6 +37,7 @@ const WORKFLOW: { p: Page; label: string; icon: IconName }[] = [
 const REPORTS: { p: Page; label: string; icon: IconName }[] = [
   { p: 'exec', label: 'Executive dashboard', icon: 'gauge' },
   { p: 'control', label: 'Schedule control', icon: 'gantt' },
+  { p: 'gantt', label: 'Timeline (Gantt)', icon: 'bars' },
   { p: 'delay', label: 'Delay analysis', icon: 'clock' },
   { p: 'quality', label: 'Schedule quality (DCMA)', icon: 'clipboard' },
   { p: 'history', label: 'History & snapshots', icon: 'history' },
@@ -137,6 +139,7 @@ function Router({ page }: { page: Page }) {
     case 'control': return <ScheduleControlPage />;
     case 'delay': return <DelayAnalysisPage />;
     case 'quality': return <QualityPage />;
+    case 'gantt': return <GanttPage />;
     case 'progress': return <ProgressPage />;
     case 'audit': return <CalculationAuditPage />;
     case 'report': return <ReportPage />;

@@ -7,6 +7,8 @@ import { PageHead, Stat, pct, pp, num, tjoin, fd, ltr } from '../common';
 import { summarize, groupTable, wbsTable, heatmap, inFilter, trendCompletion, type HeatValue } from '../../core/project';
 import { DIM_LABEL, type Dimension } from '../../core/classify';
 import { ApprovalBadge } from '../../App';
+import { earnedSchedule } from '../../core/earnedSchedule';
+import { floatErosion } from '../../core/floatErosion';
 import { MethodLine } from './ResultsPage';
 import { t } from '../../i18n';
 
@@ -35,6 +37,9 @@ export function ScheduleControlPage() {
   if (!project || !rows || !st || !sum) return <div className="card muted">{t("Import and calculate a schedule first.")}</div>;
   const L = project.classification.lists;
   const trend = trendCompletion(sum.actual, st.dataDate!, history, filters);
+  const es = earnedSchedule(rows, filters, sum.actual, st.dataDate!);
+  const prevSnap = [...history].filter((h) => h.dataDate < st.dataDate!).sort((a, b) => b.dataDate - a.dataDate)[0] ?? null;
+  const erosion = floatErosion(rows.filter((r) => inFilter(r, filters)), prevSnap);
   const hm = heatmap(rows, filters, rowDim, L[rowDim], colDim, L[colDim], hv);
   const fmtCell = (v: number | null | undefined) => (v === undefined ? '·' : v == null ? t('n/a') : hv === 'Variance (pp)' ? pp(v) : pct(v));
   const list = rows.filter((r) => inFilter(r, filters)).filter((r) => !q || `${r.a.id} ${r.a.name}`.toLowerCase().includes(q.toLowerCase()));
@@ -63,6 +68,9 @@ export function ScheduleControlPage() {
             <tr><td>{t("Time elapsed vs baseline")}</td><td className="num">{pct(sum.timeElapsed)}</td></tr>
             <tr><td>{t("Progress planned / actual")}</td><td className="num">{pct(sum.planned)} / {pct(sum.actual)}</td></tr>
             <tr><td>{t("Critical path progress planned / actual")}</td><td className="num">{sum.critPlanned == null ? t('no open critical work') : `${pct(sum.critPlanned)} / ${pct(sum.critActual)}`}</td></tr>
+            <tr><td>{t('SPI(t) - earned schedule')}</td><td className="num">{es ? <b className={es.spiT < st.redSPI ? 'h-red' : es.spiT < st.amberSPI ? 'h-amber' : 'h-green'}>{es.spiT.toFixed(2)}</b> : '-'}</td></tr>
+            <tr><td>{t('SV(t) - schedule variance in time (days)')}</td><td className="num">{es ? ltr(`${es.svT > 0 ? '+' : ''}${es.svT.toFixed(1)}`) : '-'}</td></tr>
+            <tr><td>{t('Forecast finish - earned schedule')}</td><td className="num">{es ? fd(es.forecast) : '-'}</td></tr>
             <tr><td>{t("Trend completion")}{' '}<span className="badge">{t("indicative only")}</span></td><td className="num">{trend.date ? fd(trend.date) : t(trend.reason)}</td></tr>
             <tr><td>{t("Project health")}</td><td className="num"><span className={`badge ${sum.health === 'RED' ? 'red' : sum.health === 'AMBER' ? 'amber' : 'green'}`}>{t(sum.health)}</span></td></tr>
           </tbody></table>
@@ -82,6 +90,26 @@ export function ScheduleControlPage() {
             <Stat k={t("BL finish changed")} v={sum.blFinishChanged} sub={t("vs previous snapshot")} />
           </div>
         </div>
+      </div>
+
+      <div className="card">
+        <h2>{t('Float erosion since the previous snapshot')}</h2>
+        {!erosion ? <p className="muted small">{prevSnap ? t('The previous snapshot was saved before float was recorded. Float erosion is shown from the next saved month.') : t('Save a monthly snapshot: from next month the float of every open activity is compared with this one.')}</p> : (
+          <>
+            <div className="grid3">
+              <Stat k={t('Project total float now')} v={erosion.projectFloatNow != null ? `${num(erosion.projectFloatNow, 1)} ${t('d')}` : '-'} />
+              <Stat k={t('At {d}', { d: fd(erosion.prevDate) })} v={erosion.projectFloatPrev != null ? `${num(erosion.projectFloatPrev, 1)} ${t('d')}` : '-'} />
+              <Stat k={t('Activities losing float')} v={`${erosion.eroded.length} / ${erosion.compared}`} tone={erosion.eroded.some((x) => x.critical) ? 'bad' : erosion.eroded.length ? 'warn' : 'good'} sub={t('{n} of them critical', { n: erosion.eroded.filter((x) => x.critical).length })} />
+            </div>
+            {erosion.eroded.length > 0 && (
+              <div className="table-wrap" style={{ marginTop: 12, maxHeight: 300 }}><table className="t">
+                <thead><tr><th>{t('Activity')}</th><th className="num">{t('Float before (d)')}</th><th className="num">{t('Float now (d)')}</th><th className="num">{t('Change (d)')}</th><th>{t('Critical')}</th></tr></thead>
+                <tbody>{erosion.eroded.slice(0, 50).map((x) => <tr key={x.id}><td>{x.id} {x.name}</td><td className="num">{num(x.prev, 1)}</td><td className="num">{num(x.now, 1)}</td><td className={`num ${x.change <= -5 ? 'bad' : 'warn'}`}>{num(x.change, 1)}</td><td>{x.critical ? t('Yes') : ''}</td></tr>)}</tbody>
+              </table></div>
+            )}
+          </>
+        )}
+        <p className="small muted" style={{ marginTop: 8 }}>{t('A healthy SPI can hide a critical path that is using up its float. Read SPI together with SPI(t) and the float of the driving activities.')}</p>
       </div>
 
       <div className="grid2">

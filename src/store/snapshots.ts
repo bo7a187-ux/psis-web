@@ -17,14 +17,14 @@ export function buildSnapshot(rows: CalcRow[], s: Settings, note: string): Snaps
   const sum = summarize(rows, s, NO_FILTER);
   const activities: SnapshotActivity[] = rows.filter((r) => r.included && r.a.id).map((r) => ({
     id: r.a.id, project: r.a.projectId, phase: r.cls.phase, discipline: r.cls.discipline, building: r.cls.building, floor: r.cls.floor,
-    weight: r.weight, planned: r.planned, actual: r.actual, actualEarned: r.actualEarned, blFinish: r.blFinish, fcFinish: r.fcSel,
+    weight: r.weight, planned: r.planned, actual: r.actual, actualEarned: r.actualEarned, blFinish: r.blFinish, fcFinish: r.fcSel, tf: r.tfDays,
   }));
   return {
     dataDate: s.dataDate!, savedAt: new Date().toISOString(), activities,
     summary: {
       dataDate: s.dataDate!, weighting: s.weightMethod, planned: sum.planned, actual: sum.actual, variance: sum.variance,
       activities: sum.total, completed: sum.completed, inProgress: sum.inProgress, notStarted: sum.notStarted,
-      delayed: sum.delayed, critical: sum.critical, negFloat: sum.negFloat, spi: sum.spi, note,
+      delayed: sum.delayed, critical: sum.critical, negFloat: sum.negFloat, spi: sum.spi, projectFloat: sum.projectFloat, note,
     },
   };
 }

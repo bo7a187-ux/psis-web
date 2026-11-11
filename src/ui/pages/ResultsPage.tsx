@@ -3,6 +3,7 @@ import { useApp } from '../../state';
 import { PageHead, Stat, pct, pp, num, dateTime, delayText, tjoin, fd, ltr } from '../common';
 import { groupTable, exceptionList, EXCEPTION_TYPES, NO_FILTER, type ExceptionType } from '../../core/project';
 import { DIMENSIONS, DIM_LABEL } from '../../core/classify';
+import { earnedSchedule } from '../../core/earnedSchedule';
 import { t, tr } from '../../i18n';
 
 export function ResultsPage() {
@@ -15,6 +16,7 @@ export function ResultsPage() {
   if (!project) return null;
   if (!s || !rows || !report) return <><PageHead step={6} title={t("Approve & results")} /><div className="card muted">{t(app.calcError ?? 'Import a file first.')}</div></>;
   const st = project.settings;
+  const es = st.dataDate != null ? earnedSchedule(rows, NO_FILTER, s.actual, st.dataDate) : null;
   const tone = approval === 'APPROVED' ? 'good' : approval === 'BLOCKED' ? 'bad' : 'warn';
 
   return (
@@ -49,6 +51,7 @@ export function ResultsPage() {
         <Stat k={t("Planned progress")} v={pct(s.planned)} />
         <Stat k={t("Actual progress")} v={pct(s.actual)} />
         <Stat k={t("Schedule variance")} v={pp(s.variance)} tone={(s.variance ?? 0) < -st.amberPP ? 'warn' : undefined} sub={t("percentage points vs plan")} />
+        <Stat k={t('SPI(t) - earned schedule')} v={es ? es.spiT.toFixed(2) : '-'} sub={es ? t('SV(t) {n} d', { n: ltr(`${es.svT > 0 ? '+' : ''}${es.svT.toFixed(0)}`) }) + ' · ' + t('forecast {d}', { d: fd(es.forecast) }) : ''} />
         <Stat k={t("SPI (EV / PV)")} v={s.spi != null ? s.spi.toFixed(2) : t('N/A')} sub={s.spi != null ? ltr(`EV ${num(s.ev)} · PV ${num(s.pv)}`) : t(s.spiReason)} />
         <Stat k={t("Project health")} v={t(s.health)} tone={s.health === 'RED' ? 'bad' : s.health === 'AMBER' ? 'warn' : 'good'} sub={tjoin(s.healthReasons, '؛ ') || t('All health criteria within limits')} />
         <Stat k={t("Forecast finish (selected)")} v={fd(s.forecastFinish)} sub={delayText(s.delayDays, s.blFinish)} />

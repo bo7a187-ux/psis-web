@@ -15,6 +15,8 @@ export interface SnapshotSummary {
   critical: number | null;
   negFloat: number | null;
   spi: number | null;
+  /** lowest total float of open activities (days); missing in snapshots saved before it was recorded */
+  projectFloat?: number | null;
   note: string;
 }
 
@@ -32,6 +34,8 @@ export interface SnapshotActivity {
   actualEarned: number;
   blFinish: Day | null;
   fcFinish: Day | null;
+  /** total float (days); missing in snapshots saved before it was recorded */
+  tf?: number | null;
 }
 
 export interface Snapshot {

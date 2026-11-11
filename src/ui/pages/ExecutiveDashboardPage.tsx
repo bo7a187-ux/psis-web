@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useApp } from '../../state';
 import { Chart, C } from '../Chart';
+import { earnedSchedule } from '../../core/earnedSchedule';
 import { FilterBar } from '../FilterBar';
 import { pct, pp, num, delayText, tjoin, fd, ltr } from '../common';
 import { fmtDate } from '../../core/dates';
@@ -17,6 +18,7 @@ export function ExecutiveDashboardPage() {
   const sum = useMemo(() => (rows && st ? summarize(rows, st, filters) : null), [rows, st, filters]);
   const curve = useMemo(() => (rows ? baselineCurve(rows, filters) : []), [rows, filters]);
   const trend = useMemo(() => (sum && st ? trendCompletion(sum.actual, st.dataDate!, history, filters) : null), [sum, st, history, filters]);
+  const es = useMemo(() => (rows && sum && st?.dataDate != null ? earnedSchedule(rows, filters, sum.actual, st.dataDate) : null), [rows, sum, st, filters]);
   const delayed = useMemo(() => (rows ? topDelayed(rows, filters, 10) : []), [rows, filters]);
   if (!project || !rows || !st || !sum || !trend) return <div className="card muted">{t("Import and calculate a schedule first.")}</div>;
   const DD = st.dataDate!;
@@ -103,7 +105,7 @@ export function ExecutiveDashboardPage() {
         <div className="kpi"><i>{t("Planned progress")}</i><b>{pct(sum.planned)}</b></div>
         <div className="kpi"><i>{t("Actual progress")}</i><b>{pct(sum.actual)}</b></div>
         <div className={`kpi ${(sum.variance ?? 0) < -st.redPP ? 'red' : (sum.variance ?? 0) < -st.amberPP ? 'amber' : 'green'}`}><i>{t("Schedule variance")}</i><b>{pp(sum.variance)}</b><small>{t("points vs plan")}</small></div>
-        <div className={`kpi ${sum.spi == null ? '' : sum.spi < st.redSPI ? 'red' : sum.spi < st.amberSPI ? 'amber' : 'green'}`}><i>{t("SPI (EV / PV)")}</i><b>{sum.spi != null ? sum.spi.toFixed(2) : t('N/A')}</b><small>{sum.spi != null ? ltr(`EV ${num(sum.ev)} · PV ${num(sum.pv)}`) : t(sum.spiReason)}</small></div>
+        <div className={`kpi ${sum.spi == null ? '' : sum.spi < st.redSPI ? 'red' : sum.spi < st.amberSPI ? 'amber' : 'green'}`}><i>{t("SPI (EV / PV)")}</i><b>{sum.spi != null ? sum.spi.toFixed(2) : t('N/A')}</b><small>{sum.spi != null ? ltr(`EV ${num(sum.ev)} · PV ${num(sum.pv)}`) : t(sum.spiReason)}</small>{es && <small>{ltr(`SPI(t) ${es.spiT.toFixed(2)}`)} · {t('SV(t) {n} d', { n: ltr(`${es.svT > 0 ? '+' : ''}${es.svT.toFixed(0)}`) })}</small>}</div>
         <div className={`kpi ${tone(sum.health)}`}><i>{t("Project health")}</i><b>{t(sum.health)}</b><small>{tjoin(sum.healthReasons) || t('All criteria within limits')}</small></div>
         <div className="kpi"><i>{t("Forecast finish")}</i><b>{fd(sum.forecastFinish)}</b><small>{delayText(sum.delayDays, sum.blFinish)}</small></div>
       </div>
