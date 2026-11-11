@@ -7,9 +7,9 @@ import { PageHead, Stat, pct, pp, num, tjoin, fd, ltr, Limited } from '../common
 import { summarize, groupTable, wbsTable, heatmap, inFilter, trendCompletion, type HeatValue } from '../../core/project';
 import { DIM_LABEL, type Dimension } from '../../core/classify';
 import { ApprovalBadge } from '../../App';
-import { earnedSchedule } from '../../core/earnedSchedule';
 import { floatErosion } from '../../core/floatErosion';
 import { MethodLine } from './ResultsPage';
+import { NoBaselineNotice } from '../NoBaselineNotice';
 import { t } from '../../i18n';
 
 const HEAT_DIMS: Dimension[] = ['floor', 'building', 'phase', 'location'];
@@ -27,7 +27,8 @@ function heatColor(v: number, kind: HeatValue): string {
 }
 
 export function ScheduleControlPage() {
-  const { project, rows, filters, history } = useApp();
+  const app = useApp();
+  const { project, rows, filters, history } = app;
   const [rowDim, setRowDim] = useState<Dimension>('discipline');
   const [colDim, setColDim] = useState<Dimension>('floor');
   const [hv, setHv] = useState<HeatValue>('Actual %');
@@ -37,7 +38,7 @@ export function ScheduleControlPage() {
   if (!project || !rows || !st || !sum) return <div className="card muted">{t("Import and calculate a schedule first.")}</div>;
   const L = project.classification.lists;
   const trend = trendCompletion(sum.actual, st.dataDate!, history, filters);
-  const es = earnedSchedule(rows, filters, sum.actual, st.dataDate!);
+  const es = sum.es;
   const prevSnap = [...history].filter((h) => h.dataDate < st.dataDate!).sort((a, b) => b.dataDate - a.dataDate)[0] ?? null;
   const erosion = floatErosion(rows.filter((r) => inFilter(r, filters)), prevSnap);
   const hm = heatmap(rows, filters, rowDim, L[rowDim], colDim, L[colDim], hv);
@@ -52,6 +53,7 @@ export function ScheduleControlPage() {
       <PageHead title={t("Schedule control")} right={<ApprovalBadge />}>
         <p><MethodLine st={st} />. {t('Filters apply to everything on this page.')}</p>
       </PageHead>
+      <NoBaselineNotice />
       <FilterBar />
 
       <div className="grid2">
@@ -94,7 +96,7 @@ export function ScheduleControlPage() {
 
       <div className="card">
         <h2>{t('Float erosion since the previous snapshot')}</h2>
-        {!erosion ? <p className="muted small">{prevSnap ? t('The previous snapshot was saved before float was recorded. Float erosion is shown from the next saved month.') : t('Save a monthly snapshot: from next month the float of every open activity is compared with this one.')}</p> : (
+        {!erosion ? <p className="muted small">{prevSnap ? t('The previous snapshot was saved before float was recorded. Float erosion is shown from the next saved month.') : t('Save a monthly snapshot: from next month the float of every open activity is compared with this one.')}{' '}<button className="link-btn" onClick={() => app.setPage('compare')}>{t('Or compare with last month\'s file now.')}</button></p> : (
           <>
             <div className="grid3">
               <Stat k={t('Project total float now')} v={erosion.projectFloatNow != null ? `${num(erosion.projectFloatNow, 1)} ${t('d')}` : '-'} />

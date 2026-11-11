@@ -73,11 +73,15 @@ describe('H1 Duration weighting', () => {
   it('C not started: forecast = max(BL finish, DD + BL span) = 25-Jan (no delay)', () => {
     expect(fmtDate(rows.find((r) => r.a.id === 'C')!.fcSel)).toBe('25-Jan-26');
   });
-  it('project: forecast 09-Feb-26 vs BL finish 25-Jan-26 = 15 days late; health RED with 3 written reasons', () => {
+  it('project: forecast 09-Feb-26 vs BL finish 25-Jan-26 = 15 days late; health RED with 4 written reasons', () => {
     expect(fmtDate(s.forecastFinish)).toBe('09-Feb-26');
     expect(s.delayDays).toBe(15);
     expect(s.health).toBe('RED');
-    expect(s.healthReasons).toEqual(['Forecast 15 days late (amber limit 0)', 'Behind 12.5 pp (red limit 10.0)', 'SPI 0.70 (red limit 0.90)']); // EV 1750 / PV 2500
+    expect(s.healthReasons).toEqual(['Forecast 15 days late (amber limit 0)', 'Behind 12.5 pp (red limit 10.0)', 'SPI 0.70 (red limit 0.90)', 'SPI(t) 0.75 (red limit 0.90)']); // EV 1750 / PV 2500
+    expect(s.es?.spiT).toBeCloseTo(0.75, 2);
+  });
+  it('SPI(t) can be left out of the health colour', () => {
+    expect(summarize(rows, S({ spiTHealth: false })).healthReasons).toHaveLength(3);
   });
   it('critical and negative float (open only)', () => { expect(s.critical).toBe(1); expect(s.negFloat).toBe(1); });
 });

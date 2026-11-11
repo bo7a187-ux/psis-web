@@ -74,6 +74,17 @@ export function SevBadge({ s }: { s: 'Critical' | 'Warning' | 'Info' }) {
   return <span className={`badge ${s.toLowerCase()}`}>{t(s)}</span>;
 }
 
+/** Prints with this paper size (e.g. "A4 landscape"), then the normal A4 portrait applies again. */
+export function printWith(size: string, bodyClass?: string) {
+  const st = document.createElement('style');
+  st.textContent = `@media print { @page { size: ${size}; margin: 8mm; } }`;
+  document.head.appendChild(st);
+  if (bodyClass) document.body.classList.add(bodyClass);
+  const done = () => { st.remove(); if (bodyClass) document.body.classList.remove(bodyClass); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  window.print();
+}
+
 /** Rows drawn at once in a long table: a 10 000-activity schedule stays quick to scroll and type in. */
 export const PAGE_ROWS = 300;
 /**

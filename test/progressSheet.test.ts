@@ -38,3 +38,17 @@ describe('Actual % Excel round trip', () => {
     expect(readProgressSheet([{ name: 'S', rows: [['Code', 'Pct'], ['A1', 5]] }]).error).toBe('no-columns');
   });
 });
+
+describe('Actual dates in the Excel file', () => {
+  const H2 = { ...H, as: 'Actual start (if not in P6)', af: 'Actual finish (if not in P6)' };
+  it('template has the two optional date columns and reads them back', () => {
+    const wb = readXlsx(writeXlsx(progressTemplate([row('A1', 0), row('A2', 0)], 46323, 'SITCO', H2)));
+    const g = wb.sheets[0].rows;
+    expect(g[0].slice(9)).toEqual(['Actual % (enter)', 'Actual start (if not in P6)', 'Actual finish (if not in P6)']);
+    g[1][9] = 100; g[1][10] = '01-Oct-26'; g[1][11] = { d: 46320 } as never;
+    g[2][9] = 40; g[2][10] = 'yesterday';
+    const r = readProgressSheet(wb.sheets);
+    expect(r.values).toEqual([{ id: 'A1', pct: 1, row: 2, as: 46296, af: 46320 }]);
+    expect(r.invalid).toEqual([{ row: 3, id: 'A2', value: 'yesterday' }]);
+  });
+});

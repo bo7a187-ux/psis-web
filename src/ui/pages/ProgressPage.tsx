@@ -1,10 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { useApp } from '../../state';
-import { PageHead, Stat, pct, fd, downloadBytes, Limited } from '../common';
+import { PageHead, Stat, pct, fd, downloadBytes, Limited, DateInput } from '../common';
 import { t, tr } from '../../i18n';
 import { ACTUAL_FIELD } from '../../core/settings';
-import { fmtDate } from '../../core/dates';
-import type { ProgressEntries } from '../../core/progress';
+import { fmtDate, type Day } from '../../core/dates';
+import { progressDates, type ProgressEntries } from '../../core/progress';
 import type { Activity } from '../../core/types';
 import { readWorkbookFile } from '../../core/readFile';
 import { writeXlsx } from '../../core/xlsxWrite';
@@ -18,7 +18,7 @@ const BIG_CHANGE = 0.3;
 interface Preview {
   file: string;
   read: ReadProgress;
-  apply: { id: string; name: string; from: number | null; to: number }[];
+  apply: { id: string; name: string; from: number | null; to: number; as?: Day; af?: Day }[];
   unknown: string[];
   unchanged: number;
 }
@@ -52,15 +52,23 @@ export function ProgressPage() {
   const entered = Object.values(entries).filter((e) => e.dataDate === dd).length;
 
   /** one save for any number of changes (fraction, or null = back to the P6 value) */
-  const saveMany = async (changes: { id: string; pct: number | null }[], log: string) => {
+  const saveMany = async (changes: { id: string; pct: number | null; as?: Day; af?: Day }[], log: string) => {
     if (!changes.length) return;
     const next = { ...entries };
     const at = new Date().toISOString();
     for (const c of changes) {
       const k = c.id.toLowerCase();
-      if (c.pct == null) delete next[k]; else next[k] = { pct: Math.max(0, Math.min(1, c.pct)), dataDate: dd, at };
+      const keep = next[k]?.dataDate === dd ? next[k] : undefined; // dates typed earlier stay
+      const dates = { ...(c.as != null && c.as < dd ? { as: c.as } : {}), ...(c.af != null && c.af < dd ? { af: c.af } : {}) };
+      if (c.pct == null) delete next[k]; else next[k] = { ...keep, ...dates, pct: Math.max(0, Math.min(1, c.pct)), dataDate: dd, at };
     }
     await app.updateProject({ progress: next }, log);
+  };
+  const saveDate = (id: string, key: 'as' | 'af', d: Day | null) => {
+    const k = id.toLowerCase(), e = entries[k];
+    if (!e || e.dataDate !== dd) return;
+    if (d != null && d >= dd) { setMsg({ ok: false, t: t('An actual date must be before the data date ({dd}).', { dd: fmtDate(dd) }) }); return; }
+    app.updateProject({ progress: { ...entries, [k]: { ...e, [key]: d } } }, key === 'as' ? 'Actual start entered' : 'Actual finish entered');
   };
   const parse = (raw: string): number | null => {
     const n = Number(raw.trim().replace('%', '').replace(',', '.'));
@@ -96,15 +104,15 @@ export function ProgressPage() {
   const downloadTemplate = () => {
     const h = {
       id: t('Activity ID'), name: t('Activity Name'), wbs: t('WBS'), phase: t('Phase'), building: t('Building'), status: t('Status'),
-      start: t('Start'), finish: t('Finish'), p6: t('P6 value'), actual: t('Actual % (enter)'), item: t('Item'), value: t('Value'),
+      start: t('Start'), finish: t('Finish'), p6: t('P6 value'), actual: t('Actual % (enter)'), as: t('Actual start (if not in P6)'), af: t('Actual finish (if not in P6)'), item: t('Item'), value: t('Value'),
       project: t('Project'), dataDate: t('Data date'),
-      howTo: t('How to fill'), howToText: t('Write the actual % (0-100) in the last column only for activities that changed, save, and upload the file on the Enter actual progress page. Empty cells keep their value.'),
+      howTo: t('How to fill'), howToText: t('Write the actual % (0-100) in the "Actual % (enter)" column only for activities that changed, save, and upload the file on the Enter actual progress page. Empty cells keep their value. The actual start / finish columns are optional: fill them only when P6 has no actual date (format 28-Oct-26).'),
     };
     const tr = list.map((a) => {
       const f = fileById.get(a.id.toLowerCase());
       const cls = clsByRow.get(a.row);
       return { id: a.id, name: a.name, wbsName: a.wbsName, phase: cls?.phase ?? '', building: cls?.building ?? '', status: t(f?.status ?? a.status),
-        start: f?.actStart ?? f?.start ?? null, finish: f?.actFinish ?? f?.finish ?? null, p6: p6Of(a.id), current: current(a.id)?.pct ?? null };
+        start: f?.actStart ?? f?.start ?? null, finish: f?.actFinish ?? f?.finish ?? null, p6: p6Of(a.id), current: current(a.id)?.pct ?? null, as: current(a.id)?.as ?? null, af: current(a.id)?.af ?? null };
     });
     const bytes = writeXlsx(progressTemplate(tr, dd, project.settings.projectTitle || project.name, h));
     downloadBytes(`Progress_update_${fmtDate(dd).replace(/-/g, '')}.xlsx`, bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -123,15 +131,17 @@ export function ProgressPage() {
         const a = byId.get(v.id.toLowerCase());
         if (!a) { unknown.push(v.id); continue; }
         const from = value(a.id);
-        if (from != null && Math.abs(from - v.pct) < 1e-9) { unchanged++; continue; }
-        apply.push({ id: a.id, name: a.name, from, to: v.pct });
+        const cur = current(a.id);
+        const sameDates = (v.as == null || v.as === cur?.as) && (v.af == null || v.af === cur?.af);
+        if (from != null && Math.abs(from - v.pct) < 1e-9 && sameDates) { unchanged++; continue; }
+        apply.push({ id: a.id, name: a.name, from, to: v.pct, ...(v.as != null ? { as: v.as } : {}), ...(v.af != null ? { af: v.af } : {}) });
       }
       setPreview({ file: f.name, read, apply, unknown, unchanged });
     } catch (e) { setMsg({ ok: false, t: t((e as Error).message) }); }
   };
   const confirm = async () => {
     if (!preview) return;
-    await saveMany(preview.apply.map((x) => ({ id: x.id, pct: x.to })), `Actual % uploaded from ${preview.file}`);
+    await saveMany(preview.apply.map((x) => ({ id: x.id, pct: x.to, as: x.as, af: x.af })), `Actual % uploaded from ${preview.file}`);
     setMsg({ ok: true, t: t('{n} activities updated from the file.', { n: preview.apply.length }) });
     setPreview(null);
   };
@@ -170,7 +180,7 @@ export function ProgressPage() {
           {preview.apply.length > 0 && (
             <div className="table-wrap" style={{ maxHeight: 260, marginTop: 10 }}><table className="t">
               <thead><tr><th>{t('Activity ID')}</th><th>{t('Activity Name')}</th><th className="num">{t('Now')}</th><th className="num">{t('New')}</th></tr></thead>
-              <tbody>{preview.apply.map((x) => <tr key={x.id} className={big.includes(x) ? 'warn-row' : ''}><td className="mono nowrap">{x.id}</td><td>{x.name}</td><td className="num">{pct(x.from, 0)}</td><td className="num"><b>{pct(x.to, 0)}</b></td></tr>)}</tbody>
+              <tbody>{preview.apply.map((x) => <tr key={x.id} className={big.includes(x) ? 'warn-row' : ''}><td className="mono nowrap">{x.id}</td><td>{x.name}</td><td className="num">{pct(x.from, 0)}</td><td className="num"><b>{pct(x.to, 0)}</b>{(x.as != null || x.af != null) && <div className="small muted nowrap">{x.as != null && <>{t('AS')} {fd(x.as)} </>}{x.af != null && <>{t('AF')} {fd(x.af)}</>}</div>}</td></tr>)}</tbody>
             </table></div>
           )}
           <div className="row" style={{ marginTop: 12 }}>
@@ -196,9 +206,9 @@ export function ProgressPage() {
       <p className="small muted" style={{ margin: '0 0 8px' }}>{t('Tip: press Enter to jump to the next activity, or paste a whole column copied from Excel into the first box.')}</p>
       <Limited list={list} resetKey={q + show}>{(shown, more) => (<div className="table-wrap tall">
         <table className="t progress-t">
-          <thead><tr><th>{t('Activity ID')}</th><th>{t('Activity Name')}</th><th>{t('WBS')}</th><th>{t('Status')}</th><th className="num">{t('P6 value')}</th><th>{t('Quick')}</th><th style={{ width: 130 }}>{t('Actual % (yours)')}</th><th /></tr></thead>
+          <thead><tr><th>{t('Activity ID')}</th><th>{t('Activity Name')}</th><th>{t('WBS')}</th><th>{t('Status')}</th><th className="num">{t('P6 value')}</th><th>{t('Quick')}</th><th style={{ width: 130 }}>{t('Actual % (yours)')}</th><th>{t('Actual dates')}</th><th /></tr></thead>
           <tbody>
-            {list.length === 0 && <tr><td colSpan={8} className="muted">{t('None.')}</td></tr>}
+            {list.length === 0 && <tr><td colSpan={9} className="muted">{t('None.')}</td></tr>}
             {shown.map((a, i) => {
               const k = a.id.toLowerCase();
               const e = current(a.id);
@@ -223,6 +233,16 @@ export function ProgressPage() {
                       onPaste={(ev) => { if (paste(i, ev.clipboardData.getData('text'))) { ev.preventDefault(); setDraft({}); } }}
                       onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === 'ArrowDown') { ev.preventDefault(); commit(a.id); focus(i + 1); } if (ev.key === 'ArrowUp') { ev.preventDefault(); commit(a.id); focus(i - 1); } }} /> %
                   </td>
+                  <td className="nowrap">{e && (() => {
+                    const pd = progressDates(fileById.get(k) ?? a, e, dd);
+                    if (!pd.needAs && !pd.needAf) return null;
+                    return (
+                      <div className="act-dates">
+                        {pd.needAs && <label title={pd.asEstimated ? t('Estimated - type the real date') : ''}><b>{t('AS')}</b><DateInput value={pd.as} onChange={(d) => saveDate(a.id, 'as', d)} />{pd.asEstimated && <span className="badge">{t('est.')}</span>}</label>}
+                        {pd.needAf && <label title={pd.afEstimated ? t('Estimated - type the real date') : ''}><b>{t('AF')}</b><DateInput value={pd.af} onChange={(d) => saveDate(a.id, 'af', d)} />{pd.afEstimated && <span className="badge">{t('est.')}</span>}</label>}
+                      </div>
+                    );
+                  })()}</td>
                   <td>{e && <button className="btn small" onClick={() => saveMany([{ id: a.id, pct: null }], 'Actual % entry removed')}>{t('Use P6 value')}</button>}</td>
                 </tr>
               );
@@ -230,7 +250,7 @@ export function ProgressPage() {
           </tbody>
         </table>{more}
       </div>)}</Limited>
-      <p className="small muted" style={{ marginTop: 8 }}>{t('Values save when you leave the box or press Enter. 100% marks the activity completed; above 0% marks it in progress. Entries change the data, so an approval must be given again.')}</p>
+      <p className="small muted" style={{ marginTop: 8 }}>{t('Values save when you leave the box or press Enter. 100% marks the activity completed; above 0% marks it in progress. Entries change the data, so an approval must be given again.')} {t('When the P6 file has no actual start or finish for an entry, an estimate is used (marked est.) - type the real date if you know it.')}</p>
     </>
   );
 }

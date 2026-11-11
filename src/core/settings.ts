@@ -37,6 +37,8 @@ export interface Settings {
   redPP: number;
   amberSPI: number;
   redSPI: number;
+  /** SPI(t) (earned schedule) counts in the health colour with the SPI limits. Missing = yes. */
+  spiTHealth?: boolean;
   costCoverage: number;
 }
 
@@ -60,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   redPP: 0.1,
   amberSPI: 0.95,
   redSPI: 0.9,
+  spiTHealth: true,
   costCoverage: 0.95,
 };
 

@@ -7,7 +7,8 @@ import { delaySheets } from '../../core/delayExport';
 import { fmtDate } from '../../core/dates';
 import { exceptionList, EXCEPTION_TYPES, type ExceptionType } from '../../core/project';
 import { ApprovalBadge } from '../../App';
-import { t, tr } from '../../i18n';
+import { t, tr, getLang } from '../../i18n';
+import { DIM_LABEL, type Dimension } from '../../core/classify';
 
 export function DelayAnalysisPage() {
   const { project, rows, filters, approval } = useApp();
@@ -31,8 +32,11 @@ export function DelayAnalysisPage() {
           <div className="row">
             <span className="small muted">{t("Matching activities:")}{' '}<b>{list.length}</b></span>
             <button className="btn" onClick={() => {
-              const scope = Object.entries(filters).every(([, v]) => v === 'All') ? 'Whole project' : Object.entries(filters).filter(([, v]) => v !== 'All').map(([k, v]) => `${k}: ${v}`).join(', ');
-              const bytes = writeXlsx(delaySheets(list, project.settings, type, scope, project.settings.projectTitle || project.name, approval === 'APPROVED' ? `APPROVED by ${project.approval?.reviewer}` : `DRAFT - NOT APPROVED (${approval})`));
+              const scope = Object.entries(filters).every(([, v]) => v === 'All') ? t('Whole project') : Object.entries(filters).filter(([, v]) => v !== 'All').map(([k, v]) => `${t(DIM_LABEL[k as Dimension] ?? k)}: ${v}`).join(', ');
+              const status = approval === 'APPROVED' ? t('APPROVED by {name}', { name: project.approval?.reviewer ?? '' }) : t('DRAFT - NOT APPROVED ({status})', { status: t(approval) });
+              const ar = getLang() === 'ar';
+              const bytes = writeXlsx(delaySheets(list, project.settings, type, scope, project.settings.projectTitle || project.name, status, (x) => t(x), ar));
+              // English file name: browsers may drop an Arabic one (the content is in the chosen language)
               downloadBytes(`Delay_report_${fmtDate(project.settings.dataDate).replace(/-/g, '')}.xlsx`, bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             }}>{t("Export to Excel")}</button>
           </div>

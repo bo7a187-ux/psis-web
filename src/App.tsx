@@ -13,6 +13,9 @@ import { ScheduleControlPage } from './ui/pages/ScheduleControlPage';
 import { DelayAnalysisPage } from './ui/pages/DelayAnalysisPage';
 import { QualityPage } from './ui/pages/QualityPage';
 import { GanttPage } from './ui/pages/GanttPage';
+import { ComparePage } from './ui/pages/ComparePage';
+import { LookAheadPage } from './ui/pages/LookAheadPage';
+import { PrivacyPage } from './ui/pages/PrivacyPage';
 import { ProgressPage } from './ui/pages/ProgressPage';
 import { VisitCounter } from './ui/VisitCounter';
 import { BackupReminder } from './ui/BackupCard';
@@ -38,6 +41,8 @@ const REPORTS: { p: Page; label: string; icon: IconName }[] = [
   { p: 'exec', label: 'Executive dashboard', icon: 'gauge' },
   { p: 'control', label: 'Schedule control', icon: 'gantt' },
   { p: 'gantt', label: 'Timeline (Gantt)', icon: 'bars' },
+  { p: 'lookahead', label: 'Look-ahead (next weeks)', icon: 'ahead' },
+  { p: 'compare', label: 'Compare two updates', icon: 'compare' },
   { p: 'delay', label: 'Delay analysis', icon: 'clock' },
   { p: 'quality', label: 'Schedule quality (DCMA)', icon: 'clipboard' },
   { p: 'history', label: 'History & snapshots', icon: 'history' },
@@ -93,7 +98,7 @@ export function App() {
         ))}
         <div className="side-foot">
           <Icon name="lock" size={15} />
-          <span>{t("Runs only in this browser. Your schedule data is never uploaded.")}{!app.persisted && app.ready && <em>{t("Storage is not marked as persistent - keep a backup file.")}</em>}
+          <span>{t("Runs only in this browser. Your schedule data is never uploaded.")} <button className="link-btn" onClick={() => setPage('privacy')}>{t('Privacy')}</button>{!app.persisted && app.ready && <em>{t("Storage is not marked as persistent - keep a backup file.")}</em>}
           </span>
         </div>
         <div className="credit">{t('by Hussain Alshaikh')}</div>
@@ -117,7 +122,7 @@ export function App() {
         <div className="content">
           {app.ready && page !== 'home' && page !== 'exec' && <BackupReminder />}
           {!app.ready ? <div className="muted">{t("Loading…")}</div> : <Router page={page} />}
-          <footer className="site-credit no-print">{t('by Hussain Alshaikh')}</footer>
+          <footer className="site-credit no-print">{t('by Hussain Alshaikh')} · <button className="link-btn" onClick={() => setPage('privacy')}>{t('Privacy')}</button></footer>
         </div>
       </div>
     </div>
@@ -140,6 +145,9 @@ function Router({ page }: { page: Page }) {
     case 'delay': return <DelayAnalysisPage />;
     case 'quality': return <QualityPage />;
     case 'gantt': return <GanttPage />;
+    case 'compare': return <ComparePage />;
+    case 'lookahead': return <LookAheadPage />;
+    case 'privacy': return <PrivacyPage />;
     case 'progress': return <ProgressPage />;
     case 'audit': return <CalculationAuditPage />;
     case 'report': return <ReportPage />;

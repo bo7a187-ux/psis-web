@@ -8,7 +8,6 @@
  */
 import type { CalcRow } from './engine';
 import type { Day } from './dates';
-import { inFilter, type Filters } from './project';
 
 export interface EarnedSchedule {
   start: Day; plannedFinish: Day;
@@ -28,8 +27,9 @@ function plannedAt(rows: CalcRow[], sw: number, D: number): number {
   return v / sw;
 }
 
-export function earnedSchedule(all: CalcRow[], f: Filters, actual: number | null, dataDate: Day): EarnedSchedule | null {
-  const rows = all.filter((r) => inFilter(r, f) && r.hasBL && r.blStart != null && r.blFinish != null && r.blStart > 0);
+/** rows: the activities in the current filter (summarize passes them) */
+export function earnedSchedule(filtered: CalcRow[], actual: number | null, dataDate: Day): EarnedSchedule | null {
+  const rows = filtered.filter((r) => r.hasBL && r.blStart != null && r.blFinish != null && r.blStart > 0);
   const sw = rows.reduce((n, r) => n + r.weight, 0);
   if (!rows.length || sw <= 0 || actual == null) return null;
   const start = rows.reduce((m, r) => Math.min(m, r.blStart!), Infinity);

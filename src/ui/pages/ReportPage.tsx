@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useApp } from '../../state';
-import { earnedSchedule } from '../../core/earnedSchedule';
 import { pct, pp, num, tjoin, fd, ltr } from '../common';
 import { fmtDate } from '../../core/dates';
+import type { CalcRow } from '../../core/engine';
 import { summarize, groupTable, baselineCurve, snapshotActual, topDelayed, exceptionList, trendCompletion, NO_FILTER } from '../../core/project';
-import { t, tr } from '../../i18n';
+import { t, tr, getLang } from '../../i18n';
 
 function MiniSCurve({ curve, actual, dd, fc }: { curve: { date: number; planned: number }[]; actual: [number, number][]; dd: number; fc: number | null }) {
   const W = 360, H = 150, L = 30, R = 8, T = 8, B = 20;
@@ -30,6 +30,19 @@ function MiniSCurve({ curve, actual, dd, fc }: { curve: { date: number; planned:
   );
 }
 
+/** One activity of the critical list as a bar between the data date and the end of the list. */
+function CritBar({ r, span }: { r: CalcRow; span: [number, number] }) {
+  const [lo, hi] = span, W = 100, len = hi - lo + 1;
+  const s = Math.max(lo, r.a.actStart ?? r.a.start ?? lo), f = Math.min(hi, r.fcSel ?? r.a.finish ?? s);
+  const x = ((s - lo) / len) * W, w = Math.max(2, ((f - s + 1) / len) * W);
+  return (
+    <svg viewBox={`0 0 ${W} 8`} width="100%" height="8" preserveAspectRatio="none" style={{ display: 'block', direction: 'ltr' }} aria-hidden="true">
+      <rect x="0" y="3.5" width={W} height="1" fill="#e5eaf2" />
+      <rect x={x} y="1" width={w} height="6" rx="1.5" fill={r.isMilestone ? '#0b1730' : '#c42b2b'} />
+    </svg>
+  );
+}
+
 export function ReportPage() {
   const app = useApp();
   const { project, rows, history, approval } = app;
@@ -42,8 +55,11 @@ export function ReportPage() {
   const disc = groupTable(rows, NO_FILTER, 'discipline', L.discipline, false);
   const top = topDelayed(rows, NO_FILTER, 10);
   const crit = exceptionList(rows, st, NO_FILTER, 'Critical path (by forecast finish)').slice(0, 6);
+  // time window of the small bars: data date to the last forecast finish of the listed activities
+  const critEnd = crit.reduce<number | null>((m, r) => { const f = r.fcSel ?? r.a.finish; return f != null && (m == null || f > m) ? f : m; }, null);
+  const critSpan: [number, number] | null = critEnd != null && critEnd > DD ? [DD, critEnd] : null;
   const trend = trendCompletion(sum.actual, DD, history, NO_FILTER);
-  const es = earnedSchedule(rows, NO_FILTER, sum.actual, DD);
+  const es = sum.es;
   const prior = history.filter((h) => h.dataDate < DD).sort((a, b) => a.dataDate - b.dataDate);
   const actual: [number, number][] = [...prior.map((h) => [h.dataDate, snapshotActual(h, NO_FILTER)] as [number, number | null]).filter((p): p is [number, number] => p[1] != null), ...(sum.actual != null ? [[DD, sum.actual] as [number, number]] : [])];
   const dd = (x: number | null) => (x == null ? '-' : fd(x));
@@ -115,9 +131,9 @@ export function ReportPage() {
           </section>
           <section>
             <h2>{t("Next critical activities")}</h2>
-            <table className="rp-t"><thead><tr><th>{t("Activity")}</th><th>{t("Forecast")}</th><th className="n">{t("TF (d)")}</th><th className="n">{t("Actual")}</th></tr></thead><tbody>
-              {crit.length === 0 && <tr><td colSpan={4}>{t("No open critical activities.")}</td></tr>}
-              {crit.map((r) => <tr key={r.a.row}><td>{r.a.id} {r.a.name}</td><td>{dd(r.fcSel)}</td><td className="n">{num(r.tfDays, 0)}</td><td className="n">{pct(r.actual, 0)}</td></tr>)}
+            <table className="rp-t"><thead><tr><th>{t("Activity")}</th><th>{t("Forecast")}</th><th className="n">{t("TF (d)")}</th><th className="n">{t("Actual")}</th><th className="rp-tl">{critSpan && <span className="rp-tl-h">{dd(critSpan[0])} {getLang() === 'ar' ? '←' : '→'} {dd(critSpan[1])}</span>}</th></tr></thead><tbody>
+              {crit.length === 0 && <tr><td colSpan={5}>{t("No open critical activities.")}</td></tr>}
+              {crit.map((r) => <tr key={r.a.row}><td>{r.a.id} {r.a.name}</td><td>{dd(r.fcSel)}</td><td className="n">{num(r.tfDays, 0)}</td><td className="n">{pct(r.actual, 0)}</td><td className="rp-tl">{critSpan && <CritBar r={r} span={critSpan} />}</td></tr>)}
             </tbody></table>
           </section>
         </div>

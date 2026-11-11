@@ -25,8 +25,8 @@ export function SettingsPage() {
   const sel = <K extends keyof Settings>(k: K, opts: readonly string[]) => (
     <select value={String(s[k])} onChange={(e) => set({ [k]: e.target.value } as Partial<Settings>)}>{opts.map((o) => <option key={o} value={o}>{t(o)}</option>)}</select>
   );
-  const yn = (k: 'afAsComplete' | 'includeLOE') => (
-    <select value={s[k] ? 'Yes' : 'No'} onChange={(e) => set({ [k]: e.target.value === 'Yes' })}><option value="Yes">{t("Yes")}</option><option value="No">{t("No")}</option></select>
+  const yn = (k: 'afAsComplete' | 'includeLOE' | 'spiTHealth') => (
+    <select value={(k === 'spiTHealth' ? s[k] !== false : s[k]) ? 'Yes' : 'No'} onChange={(e) => set({ [k]: e.target.value === 'Yes' })}><option value="Yes">{t("Yes")}</option><option value="No">{t("No")}</option></select>
   );
   const numIn = (k: keyof Settings, step = 1, asPct = false) => (
     <span className="row">
@@ -85,6 +85,7 @@ export function SettingsPage() {
           <Row label={t("RED: behind plan by more than")}>{numIn('redPP', 0.5, true)}</Row>
           <Row label={t("AMBER: SPI below (only if SPI available)")}>{numIn('amberSPI', 0.01)}</Row>
           <Row label={t("RED: SPI below (only if SPI available)")}>{numIn('redSPI', 0.01)}</Row>
+          <Row label={t("Use SPI(t) in the health colour")} help={t("SPI(t) (earned schedule) is measured in time and needs no costs. Yes = it is checked against the same SPI limits.")}>{yn('spiTHealth')}</Row>
           <Row label={t("Minimum cost coverage for SPI")} help={t("SPI (EV/PV) is shown only if at least this share of included non-milestone activities have a budgeted cost, and PV > 0.")}>{numIn('costCoverage', 1, true)}</Row>
         </tbody></table>
       </div>

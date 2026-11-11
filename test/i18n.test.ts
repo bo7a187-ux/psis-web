@@ -44,7 +44,8 @@ describe('Arabic interface text', () => {
     const re = /\b(?:label|title|h): '([^']+)'|\['([^']+)', '([^']+)'\]|: '([A-Z][^']+)'(?=[,}])/g;
     const found = new Set<string>();
     for (const f of files) for (const m of readFileSync(f, 'utf8').matchAll(re)) [m[1], m[2], m[3], m[4]].forEach((x) => x && /[a-z]{2}/.test(x) && found.add(x));
-    const ignore = /^(BL Project|Start|Finish|Original Duration \(or|TASK|P6_import)|\(SAMPLE\)$/;
+    // also field names used as keys in code (e.g. ['start', 'finish'])
+    const ignore = /^(BL Project|Start|Finish|Original Duration \(or|TASK|P6_import)|\(SAMPLE\)$|^[a-z]+[A-Z]?[a-z]*$/;
     expect([...found].filter((k) => AR[k] == null && !ignore.test(k))).toEqual([]);
   });
   it('translations keep the same {placeholders}', () => {

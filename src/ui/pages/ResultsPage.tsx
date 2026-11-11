@@ -3,7 +3,7 @@ import { useApp } from '../../state';
 import { PageHead, Stat, pct, pp, num, dateTime, delayText, tjoin, fd, ltr, Limited } from '../common';
 import { groupTable, exceptionList, EXCEPTION_TYPES, NO_FILTER, type ExceptionType } from '../../core/project';
 import { DIMENSIONS, DIM_LABEL } from '../../core/classify';
-import { earnedSchedule } from '../../core/earnedSchedule';
+import { NoBaselineNotice } from '../NoBaselineNotice';
 import { t, tr } from '../../i18n';
 
 export function ResultsPage() {
@@ -16,7 +16,7 @@ export function ResultsPage() {
   if (!project) return null;
   if (!s || !rows || !report) return <><PageHead step={6} title={t("Approve & results")} /><div className="card muted">{t(app.calcError ?? 'Import a file first.')}</div></>;
   const st = project.settings;
-  const es = st.dataDate != null ? earnedSchedule(rows, NO_FILTER, s.actual, st.dataDate) : null;
+  const es = s.es;
   const tone = approval === 'APPROVED' ? 'good' : approval === 'BLOCKED' ? 'bad' : 'warn';
 
   return (
@@ -24,6 +24,7 @@ export function ResultsPage() {
       <PageHead step={6} title={t("Approve & results")}>
         <p>{t("Review the calculated figures, then approve the import. Approval stores a fingerprint of every value and setting used; any later change returns all reports to DRAFT. The dashboards (stage 3) are built on exactly these figures.")}</p>
       </PageHead>
+      <NoBaselineNotice />
 
       <div className="card">
         <div className="card-head"><h2>{t("Import approval")}</h2><span className={`badge ${tone === 'good' ? 'ok' : tone === 'bad' ? 'critical' : 'draft'}`}>{t(approval)}</span></div>

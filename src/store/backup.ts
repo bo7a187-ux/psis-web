@@ -32,12 +32,35 @@ export function parseBackup(text: string): BackupFile {
   return f;
 }
 
-/** Restores as a NEW project (never overwrites an existing one). Returns the new project id. */
-export async function importProject(f: BackupFile): Promise<string> {
-  const id = newId();
-  const p = f.payload;
-  const project: Project = { ...p.project, id, name: `${p.project.name} (restored)`, baselines: p.project.baselines ?? emptyBaselines(), updatedAt: new Date().toISOString() };
+/** The project of this file that already exists in this browser (same project id), if any. */
+export async function backupConflict(f: BackupFile): Promise<Project | null> {
+  return (await db.projects.get(f.payload.project.id)) ?? null;
+}
+
+/** Removes a project with everything stored for it (import, snapshots, log). */
+export async function removeProjectData(id: string): Promise<void> {
   await db.transaction('rw', db.projects, db.imports, db.snapshots, db.log, async () => {
+    await db.projects.delete(id);
+    await db.imports.delete(id);
+    await db.snapshots.where('projectId').equals(id).delete();
+    await db.log.where('projectId').equals(id).delete();
+  });
+}
+
+/**
+ * Restores a project file. A project that is not in this browser keeps its id and name (moving to a
+ * new computer). If it is already here: 'replace' overwrites it, 'copy' adds a second project.
+ * Returns the project id.
+ */
+export async function importProject(f: BackupFile, mode: 'replace' | 'copy' = 'copy'): Promise<string> {
+  const p = f.payload;
+  const exists = await backupConflict(f);
+  const copy = exists != null && mode === 'copy';
+  const id = copy ? newId() : p.project.id;
+  const project: Project = { ...p.project, id, name: copy ? `${p.project.name} (copy)` : p.project.name, baselines: p.project.baselines ?? emptyBaselines(), updatedAt: new Date().toISOString() };
+  // one transaction: a failed restore leaves the existing project untouched
+  await db.transaction('rw', db.projects, db.imports, db.snapshots, db.log, async () => {
+    if (exists && !copy) await removeProjectData(id);
     await db.projects.add(project);
     if (p.import) await db.imports.add({ ...p.import, id, projectId: id });
     for (const s of p.snapshots) await db.snapshots.add({ ...s, id: `${id}|${s.dataDate}`, projectId: id });

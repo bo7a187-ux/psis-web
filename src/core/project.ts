@@ -4,6 +4,7 @@
  * SCHEDULE CONTROL and DELAY ANALYSIS in the workbook.
  * Every figure is weighted: progress(group) = Σ(w·p) / Σ(w) over activities that have p.
  */
+import { earnedSchedule, type EarnedSchedule } from './earnedSchedule';
 import type { CalcRow } from './engine';
 import { EPS, roundUp } from './engine';
 import type { Settings } from './settings';
@@ -82,6 +83,8 @@ export interface ProjectSummary {
   timeElapsed: number | null;
   critPlanned: number | null;
   critActual: number | null;
+  /** earned schedule (SPI(t)) for the same activities, null without baseline or progress */
+  es: EarnedSchedule | null;
   health: Health;
   healthReasons: string[];
   redCount: number;
@@ -130,6 +133,11 @@ export function summarize(all: CalcRow[], s: Settings, f: Filters = NO_FILTER): 
     if (spi < s.redSPI) { red++; reasons.push(`SPI ${fmt2(spi)} (red limit ${fmt2(s.redSPI)})`); }
     else if (spi < s.amberSPI) { amber++; reasons.push(`SPI ${fmt2(spi)} (amber limit ${fmt2(s.amberSPI)})`); }
   }
+  const es = earnedSchedule(rows, actual, DD);
+  if (es && s.spiTHealth !== false) {
+    if (es.spiT < s.redSPI) { red++; reasons.push(`SPI(t) ${fmt2(es.spiT)} (red limit ${fmt2(s.redSPI)})`); }
+    else if (es.spiT < s.amberSPI) { amber++; reasons.push(`SPI(t) ${fmt2(es.spiT)} (amber limit ${fmt2(s.amberSPI)})`); }
+  }
   const health: Health = red > 0 ? 'RED' : amber > 0 ? 'AMBER' : 'GREEN';
 
   const count = (p: (r: CalcRow) => boolean) => rows.filter(p).length;
@@ -159,7 +167,7 @@ export function summarize(all: CalcRow[], s: Settings, f: Filters = NO_FILTER): 
     timeElapsed: blStart != null && blFinish != null ? Math.max(0, Math.min(1, (DD - blStart) / (blFinish - blStart + 1))) : null,
     critPlanned: cw.planned,
     critActual: cw.actual,
-    health, healthReasons: reasons, redCount: red, amberCount: amber,
+    es, health, healthReasons: reasons, redCount: red, amberCount: amber,
   };
 }
 

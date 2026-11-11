@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyProgress } from '../src/core/progress';
+import { applyProgress, progressDates } from '../src/core/progress';
 import type { Activity } from '../src/core/types';
 
 const act = (id: string, status: string, physPct: number | null): Activity => ({
@@ -24,4 +24,30 @@ describe('Actual % entered in the app', () => {
     expect(r.activities[0].physPct).toBe(0);
   });
   it('does nothing without entries', () => expect(applyProgress(acts, undefined, 100, 'Physical % Complete').activities).toBe(acts));
+});
+
+describe('Actual dates for entries', () => {
+  // planned start 1 (before the data date 100), no actual dates in the file
+  const a = act('A1', 'Not Started', 0);
+  it('estimates AS = planned start (when before the data date) and AF = day before the data date', () => {
+    const r = applyProgress([a], { a1: { pct: 1, dataDate: 100, at: '' } }, 100, 'Physical % Complete').activities[0];
+    expect(r).toMatchObject({ actStart: 1, actFinish: 99, status: 'Completed', estimated: ['as', 'af'] });
+  });
+  it('a planned start on/after the data date gives AS = day before the data date', () => {
+    const d = progressDates({ ...a, start: 120 }, { pct: 0.4 }, 100);
+    expect(d).toMatchObject({ as: 99, af: null, asEstimated: true, needAs: true, needAf: false });
+  });
+  it('typed dates win and are not marked estimated', () => {
+    const r = applyProgress([a], { a1: { pct: 1, dataDate: 100, at: '', as: 40, af: 80 } }, 100, 'Physical % Complete').activities[0];
+    expect(r.actStart).toBe(40); expect(r.actFinish).toBe(80); expect(r.estimated).toBeUndefined();
+  });
+  it('dates in the P6 file are never replaced', () => {
+    const r = applyProgress([{ ...a, actStart: 30, actFinish: 70 }], { a1: { pct: 1, dataDate: 100, at: '', as: 40, af: 80 } }, 100, 'Physical % Complete').activities[0];
+    expect(r.actStart).toBe(30); expect(r.actFinish).toBe(70);
+  });
+  it('the estimated start is never after the finish', () => {
+    const d = progressDates({ ...a, start: 120 }, { pct: 1, af: 50 }, 100);
+    expect(d.as).toBe(50);
+  });
+  it('0% needs no dates', () => expect(progressDates(a, { pct: 0 }, 100)).toMatchObject({ as: null, af: null, needAs: false, needAf: false }));
 });

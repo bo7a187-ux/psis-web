@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
 import { useApp } from '../state';
-import { downloadText, dateTime } from './common';
+import { downloadText, dateTime, ConfirmButton } from './common';
 import { t } from '../i18n';
+import { parseBackup, backupConflict, type BackupFile } from '../store/backup';
+import type { Project } from '../store/db';
 
 const KEY = 'psis:lastBackup';
 const read = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
@@ -47,21 +49,44 @@ export function BackupCard() {
     setLast(read());
     setMsg(err ? { ok: false, t: err } : { ok: true, t: t('Project file saved to your Downloads folder. Keep it somewhere safe (cloud drive or USB).') });
   };
-  const doImport = async (f: File | undefined) => {
-    if (!f) return;
-    try { await app.restoreBackup(await f.text()); setMsg({ ok: true, t: t('Project restored as a new project.') }); }
-    catch (e) { setMsg({ ok: false, t: (e as Error).message }); }
+  const [pending, setPending] = useState<{ f: BackupFile; existing: Project } | null>(null);
+  const restore = async (f: BackupFile, mode: 'replace' | 'copy', existed: boolean) => {
+    setPending(null);
+    try {
+      await app.restoreBackup(f, mode);
+      setMsg({ ok: true, t: !existed ? t('Project "{name}" restored.', { name: f.payload.project.name }) : mode === 'replace' ? t('Project "{name}" replaced with the file.', { name: f.payload.project.name }) : t('Project restored as a copy.') });
+    } catch (e) { setMsg({ ok: false, t: (e as Error).message }); }
+  };
+  const doImport = async (file: File | undefined) => {
+    if (!file) return;
+    setMsg(null);
+    try {
+      const f = parseBackup(await file.text());
+      const existing = await backupConflict(f);
+      if (existing) setPending({ f, existing }); else await restore(f, 'copy', false);
+    } catch (e) { setMsg({ ok: false, t: (e as Error).message }); }
   };
   return (
     <div className="card">
       <h2>{t("Backup (project file)")}</h2>
-      <p className="small muted">{t("Your data lives only in this browser. If the browser data is cleared you lose it, so save a project file after each month. It contains the import, settings, rules, baselines, snapshots and the change log. Restoring always creates a new project and never overwrites an existing one.")}</p>
+      <p className="small muted">{t("Your data lives only in this browser. If the browser data is cleared you lose it, so save a project file after each month. It contains the import, settings, rules, baselines, snapshots and the change log. On another computer the project opens with its name; if it is already in this browser you choose to replace it or keep both.")}</p>
       <div className="row" style={{ marginTop: 8 }}>
         <button className="btn primary" disabled={!app.project} onClick={doExport}>{t("Export project file")}</button>
         <button className="btn" onClick={() => file.current?.click()}>{t("Import project file…")}</button>
         <input ref={file} type="file" accept=".json,.psis.json" hidden onChange={(e) => { doImport(e.target.files?.[0]); e.target.value = ''; }} />
         <span className="small muted">{last ? t('Last backup from this browser: {when}', { when: dateTime(last) }) : t('No backup made from this browser yet.')}</span>
       </div>
+      {pending && (
+        <div className="notice warn">
+          <b>{t('"{name}" is already in this browser.', { name: pending.existing.name })}</b>{' '}
+          {t('Here it was last changed {here}; the file was saved {file}.', { here: dateTime(pending.existing.updatedAt), file: dateTime(pending.f.exportedAt) })}
+          <div className="row" style={{ marginTop: 8 }}>
+            <ConfirmButton className="btn small primary" confirmText={t('Click again: the project here is replaced')} onConfirm={() => restore(pending.f, 'replace', true)}>{t('Replace it with the file')}</ConfirmButton>
+            <button className="btn small" onClick={() => restore(pending.f, 'copy', true)}>{t('Keep both (open the file as a copy)')}</button>
+            <button className="btn small" onClick={() => setPending(null)}>{t('Cancel')}</button>
+          </div>
+        </div>
+      )}
       {msg && <div className={`notice ${msg.ok ? 'good' : 'bad'}`}>{t(msg.t)}</div>}
     </div>
   );

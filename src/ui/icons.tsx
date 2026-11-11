@@ -28,6 +28,10 @@ const P: Record<string, string> = {
   linkedin: 'M4 9v11M4 4.5v.01M9 20v-6.5a3.5 3.5 0 0 1 7 0V20M9 9v11M20 20v-6',
   bars: 'M4 6.5h8M7 12h11M10 17.5h8M4 3v18',
   clipboard: 'M9 3.5h6v3H9zM7.5 5H5.5v16h13V5h-2M9 13.5l2 2 4-4.5',
+  compare: 'M8 4v16M16 4v16M4 8l4-4 4 4M12 16l4 4 4-4',
+  ahead: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 15h7m-2.5-2.5L15 15l-2.5 2.5',
+  printer: 'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',
+  route: 'M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm12-10a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM6 15V9a3 3 0 0 1 3-3h7M18 9v6a3 3 0 0 1-3 3H8',
   users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16 4.5a3.3 3.3 0 0 1 0 6.3M18 14.8c1.9.7 3 2.5 3 5.2',
 };
 export type IconName = keyof typeof P;

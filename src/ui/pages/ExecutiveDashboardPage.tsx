@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useApp } from '../../state';
 import { Chart, C } from '../Chart';
-import { earnedSchedule } from '../../core/earnedSchedule';
 import { FilterBar } from '../FilterBar';
 import { pct, pp, num, delayText, tjoin, fd, ltr } from '../common';
 import { fmtDate } from '../../core/dates';
@@ -18,7 +17,7 @@ export function ExecutiveDashboardPage() {
   const sum = useMemo(() => (rows && st ? summarize(rows, st, filters) : null), [rows, st, filters]);
   const curve = useMemo(() => (rows ? baselineCurve(rows, filters) : []), [rows, filters]);
   const trend = useMemo(() => (sum && st ? trendCompletion(sum.actual, st.dataDate!, history, filters) : null), [sum, st, history, filters]);
-  const es = useMemo(() => (rows && sum && st?.dataDate != null ? earnedSchedule(rows, filters, sum.actual, st.dataDate) : null), [rows, sum, st, filters]);
+  const es = sum?.es ?? null;
   const delayed = useMemo(() => (rows ? topDelayed(rows, filters, 10) : []), [rows, filters]);
   if (!project || !rows || !st || !sum || !trend) return <div className="card muted">{t("Import and calculate a schedule first.")}</div>;
   const DD = st.dataDate!;

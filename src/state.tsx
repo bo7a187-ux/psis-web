@@ -5,7 +5,7 @@ import { DEFAULT_IMPORT_OPTIONS, runImport, pickSheet, findDataDate, type Import
 import { emptyClassification } from './core/classify';
 import { emptyBaselines, toMap, resolveRevision, itemsFromActivities, type Baselines } from './core/baselines';
 import { listSnapshots, saveSnapshot, deleteLatestSnapshot, buildSnapshot } from './store/snapshots';
-import { exportProject, importProject, parseBackup, type BackupFile } from './store/backup';
+import { exportProject, importProject, removeProjectData, type BackupFile } from './store/backup';
 import { SAMPLE_ORIGINAL, SAMPLE_REV1, SAMPLE_REV1_INFO } from './sample/sampleBaselines';
 import type { PrevSnapshotRow } from './core/engine';
 import { calcActivities, type CalcRow } from './core/engine';
@@ -20,7 +20,8 @@ import { SAMPLE_DATA_DATE, SAMPLE_FILE_NAME, SAMPLE_TITLE, sampleClassification,
 
 export type Page =
   | 'home' | 'import' | 'mapping' | 'validation' | 'classification' | 'settings' | 'activities' | 'results'
-  | 'progress' | 'gantt' | 'exec' | 'control' | 'delay' | 'quality' | 'history' | 'baselines' | 'report' | 'audit';
+  | 'progress' | 'gantt' | 'exec' | 'control' | 'delay' | 'quality' | 'history' | 'baselines' | 'report' | 'audit'
+  | 'compare' | 'lookahead' | 'privacy';
 
 interface Derived {
   imp: ImportResult | null;
@@ -59,7 +60,7 @@ interface Ctx extends Derived {
   saveCurrentSnapshot: (note: string) => Promise<void>;
   deleteLatest: (typed: string) => Promise<void>;
   makeBackup: () => Promise<BackupFile | null>;
-  restoreBackup: (text: string) => Promise<void>;
+  restoreBackup: (f: BackupFile, mode: 'replace' | 'copy') => Promise<void>;
   currentBaselineItems: () => ReturnType<typeof itemsFromActivities>;
   refreshHistory: () => Promise<void>;
 }
@@ -204,11 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteProject = useCallback(async () => {
     if (!project) return;
-    await db.transaction('rw', db.projects, db.imports, db.log, async () => {
-      await db.projects.delete(project.id);
-      await db.imports.delete(project.id);
-      await db.log.where('projectId').equals(project.id).delete();
-    });
+    await removeProjectData(project.id);
     const list = await reloadList();
     setProject(null);
     setStored(null);
@@ -283,8 +280,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await refreshHistory();
   }, [project, refreshHistory]);
   const makeBackup = useCallback(async (): Promise<BackupFile | null> => (project ? exportProject(project.id) : null), [project]);
-  const restoreBackup = useCallback(async (text: string) => {
-    const id = await importProject(parseBackup(text));
+  const restoreBackup = useCallback(async (f: BackupFile, mode: 'replace' | 'copy') => {
+    const id = await importProject(f, mode);
     await reloadList();
     await selectProject(id);
     setPage('home');

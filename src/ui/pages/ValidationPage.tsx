@@ -46,7 +46,7 @@ export function ValidationPage() {
                   <td>{c.count > 0 ? <SevBadge s={c.severity} /> : <span className="badge ok">{t("OK")}</span>}</td>
                   <td className="num"><b>{c.count}</b></td>
                   <td className="small">{t(c.help)}</td>
-                  <td>{c.count > 0 && <button className="btn small" onClick={() => setOpen(open === c.id ? null : c.id)}>{open === c.id ? 'Hide' : 'Show'}</button>}</td>
+                  <td>{c.count > 0 && <button className="btn small" onClick={() => setOpen(open === c.id ? null : c.id)}>{t(open === c.id ? 'Hide' : 'Show')}</button>}</td>
                 </tr>,
                 open === c.id && (
                   <tr key={c.id + '-items'}><td colSpan={5} style={{ background: 'var(--surface-2)' }}>

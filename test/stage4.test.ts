@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db, newId, type Project } from '../src/store/db';
 import { saveSnapshot, listSnapshots, deleteLatestSnapshot, buildSnapshot, SnapshotError } from '../src/store/snapshots';
-import { exportProject, importProject, parseBackup, BackupError } from '../src/store/backup';
+import { exportProject, importProject, parseBackup, BackupError, backupConflict, removeProjectData } from '../src/store/backup';
 import { emptyBaselines, saveOriginal, addRevision, resolveRevision, itemsFromActivities, toMap, compareBaselines, BaselineError } from '../src/core/baselines';
 import { calcActivities } from '../src/core/engine';
 import { summarize, NO_FILTER } from '../src/core/project';
@@ -126,6 +126,26 @@ describe('Backup file', () => {
     expect(() => parseBackup(text.replace('"name":"T"', '"name":"Tampered"'))).toThrow(/checksum/);
     expect(() => parseBackup('not json')).toThrow(BackupError);
     expect(() => parseBackup('{"format":"other"}')).toThrow(/not a Masar Schedule/);
+  });
+  it('on another computer the project keeps its id and name; here you choose replace or copy', async () => {
+    const p = mkProject(); await db.projects.add(p);
+    await saveSnapshot(p.id, buildSnapshot(rowsOf(), refSettings(), 'n'));
+    const f = parseBackup(JSON.stringify(await exportProject(p.id)));
+    expect((await backupConflict(f))!.id).toBe(p.id);
+    // "another computer": the project is not there
+    await removeProjectData(p.id);
+    expect(await listSnapshots(p.id)).toHaveLength(0);
+    expect(await backupConflict(f)).toBeNull();
+    expect(await importProject(f)).toBe(p.id);
+    expect((await db.projects.get(p.id))!.name).toBe('T');
+    // already here: replace keeps one project, copy adds a second one
+    await db.projects.update(p.id, { name: 'Changed here' });
+    expect(await importProject(f, 'replace')).toBe(p.id);
+    expect((await db.projects.get(p.id))!.name).toBe('T');
+    expect(await listSnapshots(p.id)).toHaveLength(1);
+    const c = await importProject(f, 'copy');
+    expect(c).not.toBe(p.id);
+    expect((await db.projects.get(c))!.name).toBe('T (copy)');
   });
   it('dates round trip', () => expect(fromYMD(2026, 11, 8)).toBe(46334));
 });

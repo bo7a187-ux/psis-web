@@ -60,7 +60,7 @@ export function CalculationAuditPage() {
             ['Missing data', 'Activities without baseline, progress or weight are excluded from the affected figure and listed in Validation - never treated as zero.'],
             ['Variance vs delay', 'Variance is in percentage points (Actual − Planned). Delay is in calendar days (forecast − baseline finish).'],
             ['SPI', 'EV ÷ PV, shown only when cost coverage ≥ the Settings threshold and PV > 0; otherwise N/A with the reason.'],
-            ['Project health', 'RED/AMBER when a limit in Settings is crossed (forecast delay days, variance pp, SPI); each reason is written. The trend completion is indicative only and not used.']]
+            ['Project health', 'RED/AMBER when a limit in Settings is crossed (forecast delay days, variance pp, SPI, SPI(t)); each reason is written. The trend completion is indicative only and not used.']]
             .map(([a, b]) => <tr key={a}><td className="nowrap"><b>{t(a)}</b></td><td>{t(b)}</td></tr>)}
         </tbody></table>
       </div>

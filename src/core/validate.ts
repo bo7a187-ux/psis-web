@@ -75,6 +75,9 @@ export function validate(imp: ImportResult, rows: CalcRow[] | null, settings: Se
     add('noas', 'Progress without Actual Start', 'Warning', ids((r) => r.flags.progressWithoutAS), 'Progress reported but no actual start date.');
     add('noaf', 'Completed without Actual Finish', 'Warning', ids((r) => r.flags.completedWithoutAF), 'Status says completed but there is no actual finish.');
     add('afpct', 'Actual Finish but % < 100', 'Info', ids((r) => r.flags.afButPctBelow100), settings.afAsComplete ? 'Counted as 100% because "Activities with Actual Finish count as 100%" is Yes.' : 'Uses the % value because "Actual Finish = 100%" is No.');
+    add('estdates', 'Actual dates estimated for your entries', 'Info',
+      rows.filter((r) => r.a.estimated?.length).map((r) => `${r.a.id}: ${r.a.estimated!.map((k) => (k === 'as' ? 'AS' : 'AF')).join(' + ')}`),
+      'The P6 file has no actual date for these entries, so an estimate is used (finish = the day before the data date). Type the real date on Enter actual progress, and enter it in P6 at the next update.');
     add('future', 'Actual dates on/after Data Date', 'Warning', ids((r) => r.flags.actualAfterDataDate), 'Actual dates cannot be on or after the data date (the data date is the start of the day).');
     add('summ', 'Excluded: WBS Summary', 'Info', ids((r) => r.isSummary), 'Never counted, to avoid double-counting.');
     add('loe', 'Excluded: Level of Effort', 'Info', settings.includeLOE ? [] : ids((r) => r.isLOE && !r.isSummary), 'Controlled by Settings.');
