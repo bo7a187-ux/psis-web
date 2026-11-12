@@ -10,12 +10,12 @@ import { DIM_LABEL, type Dimension } from '../../core/classify';
 import { writeXlsx } from '../../core/xlsxWrite';
 import { lookAhead, lookAheadSheet, LOOK_SHOW, type LookItem, type LookShow } from '../../core/lookahead';
 
-type GroupBy = 'none' | 'wbs' | Dimension;
+type GroupBy = 'none' | 'wbs' | Dimension | `code:${string}`;
 const GROUPS: GroupBy[] = ['none', 'wbs', 'discipline', 'building', 'floor', 'phase'];
 
 /** The work of the next weeks, for the site team and the weekly meeting. */
 export function LookAheadPage() {
-  const { project, rows, filters } = useApp();
+  const { project, rows, filters, imp } = useApp();
   const [weeks, setWeeks] = useState(3);
   const [show, setShow] = useState<LookShow>('active');
   const [by, setBy] = useState<GroupBy>('none');
@@ -28,7 +28,7 @@ export function LookAheadPage() {
   }, [rows, dd, weeks, show, filters, q]);
   if (!project || !la || dd == null) return <div className="card muted">{t('Import and calculate a schedule first.')}</div>;
 
-  const keyOf = (x: LookItem) => (by === 'none' ? '' : by === 'wbs' ? x.row.a.wbsName || x.row.a.wbs || '-' : x.row.cls[by]);
+  const keyOf = (x: LookItem) => (by === 'none' ? '' : by === 'wbs' ? x.row.a.wbsName || x.row.a.wbs || '-' : by.startsWith('code:') ? x.row.a.codes?.[by.slice(5)] || t('(no value)') : x.row.cls[by as Dimension]);
   const groups: { key: string; items: LookItem[] }[] = [];
   for (const x of la.items) {
     const k = keyOf(x);
@@ -58,7 +58,7 @@ export function LookAheadPage() {
         <label className="row small"><b>{t('Show')}</b>
           <select value={show} onChange={(e) => setShow(e.target.value as LookShow)}>{LOOK_SHOW.map((x) => <option key={x.v} value={x.v}>{t(x.label)}</option>)}</select></label>
         <label className="row small"><b>{t('Group by')}</b>
-          <select value={by} onChange={(e) => setBy(e.target.value as GroupBy)}>{GROUPS.map((g) => <option key={g} value={g}>{g === 'none' ? t('No grouping') : g === 'wbs' ? 'WBS' : t(DIM_LABEL[g])}</option>)}</select></label>
+          <select value={by} onChange={(e) => setBy(e.target.value as GroupBy)}>{GROUPS.map((g) => <option key={g} value={g}>{g === 'none' ? t('No grouping') : g === 'wbs' ? 'WBS' : t(DIM_LABEL[g as Dimension])}</option>)}{(imp?.codeTypes ?? []).map((c) => <option key={c} value={`code:${c}`}>{t('Activity code')}: {c}</option>)}</select></label>
         <input type="search" placeholder={t('Search ID, name or WBS…')} value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
       </div>
       <div className="grid3" style={{ marginBottom: 14 }}>

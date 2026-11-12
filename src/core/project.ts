@@ -14,9 +14,18 @@ import type { Dimension } from './classify';
 import type { Snapshot } from './snapshot';
 
 export type FilterKey = 'project' | 'phase' | 'discipline' | 'building' | 'floor';
-export type Filters = Record<FilterKey, string>; // 'All' = no filter
+/** 'All' = no filter. codeType + code filter on a P6 activity code (code NO_CODE = activities without a value). */
+export type Filters = Record<FilterKey, string> & { codeType?: string; code?: string };
 export const NO_FILTER: Filters = { project: 'All', phase: 'All', discipline: 'All', building: 'All', floor: 'All' };
-export const isUnfiltered = (f: Filters) => Object.values(f).every((v) => v === 'All');
+export const NO_CODE = '(no value)';
+const codeOn = (f: Filters) => !!f.codeType && !!f.code && f.code !== 'All';
+export const isUnfiltered = (f: Filters) => !codeOn(f) && (['project', 'phase', 'discipline', 'building', 'floor'] as FilterKey[]).every((k) => f[k] === 'All');
+/** the active filters as [label, value] pairs (for report headers and exports) */
+export function filterParts(f: Filters): [string, string][] {
+  const out = (['project', 'phase', 'discipline', 'building', 'floor'] as FilterKey[]).filter((k) => f[k] !== 'All').map((k): [string, string] => [k, f[k]]);
+  if (codeOn(f)) out.push([f.codeType!, f.code!]);
+  return out;
+}
 
 export function inFilter(r: CalcRow, f: Filters): boolean {
   if (!r.included) return false;
@@ -24,7 +33,8 @@ export function inFilter(r: CalcRow, f: Filters): boolean {
     && (f.phase === 'All' || r.cls.phase === f.phase)
     && (f.discipline === 'All' || r.cls.discipline === f.discipline)
     && (f.building === 'All' || r.cls.building === f.building)
-    && (f.floor === 'All' || r.cls.floor === f.floor);
+    && (f.floor === 'All' || r.cls.floor === f.floor)
+    && (!codeOn(f) || (f.code === NO_CODE ? !r.a.codes?.[f.codeType!] : r.a.codes?.[f.codeType!] === f.code));
 }
 
 /** Weighted planned / actual of a set of rows. null when no row carries a weight with that value. */

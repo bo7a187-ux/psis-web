@@ -65,6 +65,8 @@ export interface ImportResult {
   sharedColumns: { column: ColumnInfo; fields: FieldKey[] }[];
   activities: Activity[];
   cellIssues: CellIssue[];
+  /** activity code types found (XER codes, or text columns of the export that are not mapped to a field) */
+  codeTypes: string[];
   /** data rows ignored because they have neither an Activity ID nor a name */
   ignoredRows: number[];
   notes: string[];
@@ -287,6 +289,10 @@ export function runImport(
   const quality = new Set(QUALITY_HEADERS.map(normHeader));
   const unusedColumns = columns.filter((c) => !byCol.has(c.index) && (c.header1 || c.header2) && !quality.has(normHeader(c.header1)) && !quality.has(normHeader(c.header2)));
 
+  // ---- activity codes: XER "Code: x" columns, or unmapped text columns with repeated values
+  const codeCols = unusedColumns.map((c) => ({ c, name: codeColumnName(c, rows, dataStart) })).filter((x): x is { c: ColumnInfo; name: string } => x.name != null);
+  const codeTypes = [...new Set(codeCols.map((x) => x.name))];
+
   // ---- read activities
   const activities: Activity[] = [];
   const cellIssues: CellIssue[] = [];
@@ -371,12 +377,42 @@ export function runImport(
         }
       }
     }
+    for (const { c, name: cn } of codeCols) {
+      const v = cellText(row[c.index] ?? null);
+      if (v) (a.codes ??= {})[cn] = v;
+    }
     activities.push(a);
   }
   if (ignoredRows.length)
     notes.push(`${ignoredRows.length} row(s) have data but no Activity ID or Activity Name and were ignored (sheet rows ${ignoredRows.slice(0, 10).join(', ')}${ignoredRows.length > 10 ? ', ...' : ''}).`);
 
-  return { sheetName, headerStart, headerRows, headerRowsDetected: detected, columns, matches, unusedColumns, sharedColumns, activities, cellIssues, ignoredRows, notes };
+  return { sheetName, headerStart, headerRows, headerRowsDetected: detected, columns, matches, unusedColumns, sharedColumns, activities, cellIssues, ignoredRows, notes, codeTypes };
+}
+
+const CODE_RE = /^code:\s*/i;
+/**
+ * Name of an activity code column, or null. XER columns are named "Code: <type>". In an Excel export
+ * an unmapped column counts when it holds short text that repeats (codes, calendar, resource...),
+ * not numbers, dates or free notes.
+ */
+function codeColumnName(c: ColumnInfo, rows: Grid, dataStart: number): string | null {
+  const label = (c.header2 || c.header1 || '').trim();
+  if (CODE_RE.test(c.header1) || CODE_RE.test(c.header2)) return (CODE_RE.test(c.header1) ? c.header1 : c.header2).replace(CODE_RE, '').trim() || null;
+  if (!label) return null;
+  let n = 0, filled = 0, long = 0;
+  const seen = new Set<string>();
+  for (let r = dataStart; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.every((x) => x == null || x === '')) continue;
+    n++;
+    const v = row[c.index];
+    if (v == null || (typeof v === 'string' && v.trim() === '')) continue;
+    if (typeof v !== 'string' || /^[-+]?[\d.,]+%?$/.test(v.trim())) return null; // numbers, dates, flags
+    filled++; seen.add(v.trim());
+    if (v.length > 60) long++;
+  }
+  if (n < 2 || filled < n * 0.3 || long > filled * 0.1) return null;
+  return seen.size >= 1 && seen.size <= Math.max(40, n * 0.3) && seen.size < filled ? label : null;
 }
 
 /** Rank sheets by how many known headers they contain (P6 exports put activities on "TASK"). */

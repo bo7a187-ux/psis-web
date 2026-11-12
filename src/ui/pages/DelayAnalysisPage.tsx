@@ -5,7 +5,7 @@ import { PageHead, pct, pp, num, downloadBytes, fd } from '../common';
 import { writeXlsx } from '../../core/xlsxWrite';
 import { delaySheets } from '../../core/delayExport';
 import { fmtDate } from '../../core/dates';
-import { exceptionList, EXCEPTION_TYPES, type ExceptionType } from '../../core/project';
+import { exceptionList, EXCEPTION_TYPES, isUnfiltered, filterParts, type ExceptionType } from '../../core/project';
 import { ApprovalBadge } from '../../App';
 import { t, tr, getLang } from '../../i18n';
 import { DIM_LABEL, type Dimension } from '../../core/classify';
@@ -32,7 +32,7 @@ export function DelayAnalysisPage() {
           <div className="row">
             <span className="small muted">{t("Matching activities:")}{' '}<b>{list.length}</b></span>
             <button className="btn" onClick={() => {
-              const scope = Object.entries(filters).every(([, v]) => v === 'All') ? t('Whole project') : Object.entries(filters).filter(([, v]) => v !== 'All').map(([k, v]) => `${t(DIM_LABEL[k as Dimension] ?? k)}: ${v}`).join(', ');
+              const scope = isUnfiltered(filters) ? t('Whole project') : filterParts(filters).map(([k, v]) => `${t(DIM_LABEL[k as Dimension] ?? k)}: ${v}`).join(', ');
               const status = approval === 'APPROVED' ? t('APPROVED by {name}', { name: project.approval?.reviewer ?? '' }) : t('DRAFT - NOT APPROVED ({status})', { status: t(approval) });
               const ar = getLang() === 'ar';
               const bytes = writeXlsx(delaySheets(list, project.settings, type, scope, project.settings.projectTitle || project.name, status, (x) => t(x), ar));

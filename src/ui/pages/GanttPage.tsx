@@ -35,6 +35,7 @@ export function GanttPage() {
   const relations = useMemo(() => (stored && imp && opts ? readLogic(stored.sheets, stored.sheetIndex, imp, opts.durationUnit, opts.hoursPerDay).relations : null), [stored, imp, opts]);
   const path = useMemo(() => (target && rows && relations && dd != null ? drivingPath(rows, relations, target, dd) : null), [target, rows, relations, dd]);
   const onPath = useMemo(() => new Set(path?.rows.map((r) => r.a.row) ?? []), [path]);
+  const codeTypes = imp?.codeTypes ?? [];
   const milestones = useMemo(() => (rows ?? []).filter((r) => r.isMilestone && r.status !== 'Completed' && r.a.id).map((r) => r.a.id), [rows]);
   const groups = useMemo<GanttGroup[]>(() => {
     if (path) {
@@ -60,7 +61,7 @@ export function GanttPage() {
   const trace = () => { setTarget(pathIn.trim()); setClosed(new Set()); };
   const count = groups.reduce((n, g) => n + g.bars.length, 0);
   const toggle = (k: string) => setClosed((c) => { const n = new Set(c); if (n.has(k)) n.delete(k); else n.add(k); return n; });
-  const groupLabel = (label: string) => (by === 'wbs' ? label : by === 'none' ? '' : t(label));
+  const groupLabel = (label: string) => (by.startsWith('code:') ? (label === '-' ? t('(no value)') : label) : by === 'wbs' ? label : by === 'none' ? '' : t(label));
   const notFound = target && !path;
 
   return (
@@ -74,6 +75,7 @@ export function GanttPage() {
         <label className="row small"><b>{t('Group by')}</b>
           <select value={by} onChange={(e) => { setBy(e.target.value as GanttGroupBy); setClosed(new Set()); }}>
             {GROUPS.map((g) => <option key={g} value={g}>{g === 'wbs' ? 'WBS' : g === 'none' ? t('No grouping') : t(DIM_LABEL[g as Dimension])}</option>)}
+            {codeTypes.map((c) => <option key={c} value={`code:${c}`}>{t('Activity code')}: {c}</option>)}
           </select></label>
         <label className="row small"><b>{t('Scale')}</b>
           <select value={zoom} onChange={(e) => setZoom(e.target.value as Zoom)}>

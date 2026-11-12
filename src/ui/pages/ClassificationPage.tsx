@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../../state';
 import { PageHead, Limited } from '../common';
 import { WbsRulesCard } from '../WbsRulesCard';
-import { DIMENSIONS, DIM_LABEL, RULE_FIELDS, RULE_TYPES, UNCLASSIFIED, ruleMatchCounts, type ClassificationConfig, type Dimension, type Rule, type Override } from '../../core/classify';
+import { CodeRulesCard } from '../CodeRulesCard';
+import { DIMENSIONS, DIM_LABEL, RULE_FIELDS, CODE_FIELD, codeField, RULE_TYPES, UNCLASSIFIED, ruleMatchCounts, type ClassificationConfig, type Dimension, type Rule, type Override } from '../../core/classify';
 import { t, tr } from '../../i18n';
 
 export function ClassificationPage() {
@@ -39,6 +40,7 @@ export function ClassificationPage() {
       <datalist id="dl-ids">{ids.map((i) => <option key={i} value={i} />)}</datalist>
 
       <WbsRulesCard />
+      <CodeRulesCard />
       <div className="card">
         <h2>{t("Lists of values")}</h2>
         <p className="small muted">{t("The values used on dashboards and filters. Rules and overrides should use these exact values; anything else is flagged on Validation.")}</p>
@@ -79,7 +81,7 @@ export function ClassificationPage() {
               {cfg.rules.map((r, i) => (
                 <tr key={i}>
                   <td className="muted">{i + 1}</td>
-                  <td><select value={r.field} onChange={(e) => setRule(i, { ...r, field: e.target.value as Rule['field'] })}>{RULE_FIELDS.map((f) => <option key={f} value={f}>{t(f)}</option>)}</select></td>
+                  <td><select value={r.field} onChange={(e) => setRule(i, { ...r, field: e.target.value as Rule['field'] })}>{RULE_FIELDS.map((f) => <option key={f} value={f}>{t(f)}</option>)}{(imp?.codeTypes ?? []).map((c) => <option key={c} value={codeField(c)}>{t('Activity code')}: {c}</option>)}{r.field.startsWith(CODE_FIELD) && !(imp?.codeTypes ?? []).some((c) => codeField(c) === r.field) && <option value={r.field}>{r.field}</option>}</select></td>
                   <td><select value={r.type} onChange={(e) => setRule(i, { ...r, type: e.target.value as Rule['type'] })}>{RULE_TYPES.map((f) => <option key={f} value={f}>{t(f)}</option>)}</select></td>
                   <td><input type="text" value={r.text} onChange={(e) => setRule(i, { ...r, text: e.target.value })} style={{ width: 110 }} /></td>
                   {DIMENSIONS.map((d: Dimension) => (

@@ -64,6 +64,9 @@ const TYPE: Record<string, string> = {
   TT_FinMile: 'Finish Milestone', TT_WBS: 'WBS Summary',
 };
 
+/** header prefix of an activity code column made from an XER file */
+export const CODE_PREFIX = 'Code: ';
+
 export const XER_HEADERS = [
   'Project ID', 'Project Name', 'Activity ID', 'Activity Name', 'Activity Status', 'WBS Code', 'WBS Name', 'Activity Type',
   'Original Duration(d)', 'Remaining Duration(d)', 'Actual Duration(d)', 'Total Float(d)', 'Free Float(d)', 'Critical',
@@ -139,6 +142,24 @@ export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData
   const longName = new Map<string, string>();
   for (const w of t.PROJWBS ?? []) if (w.proj_node_flag === 'Y') longName.set(w.proj_id, w.wbs_name);
 
+  // Activity codes (ACTVTYPE / ACTVCODE / TASKACTV): one "Code: <type>" column per code type used
+  const codeType = new Map((t.ACTVTYPE ?? []).map((x) => [x.actv_code_type_id, (x.actv_code_type ?? '').trim()]));
+  const codeValue = new Map((t.ACTVCODE ?? []).map((x) => {
+    const sh = (x.short_name ?? '').trim(), nm = (x.actv_code_name ?? '').trim();
+    return [x.actv_code_id, sh && nm && sh !== nm ? `${sh} - ${nm}` : sh || nm];
+  }));
+  const taskCodes = new Map<string, Map<string, string>>();
+  const codeNames: string[] = [];
+  const reportTaskIds = new Set(tasks.filter((k) => reportIds.has(k.proj_id)).map((k) => k.task_id));
+  for (const x of t.TASKACTV ?? []) {
+    if (!reportTaskIds.has(x.task_id)) continue;
+    const type = codeType.get(x.actv_code_type_id), val = codeValue.get(x.actv_code_id);
+    if (!type || !val) continue;
+    if (!codeNames.includes(type)) codeNames.push(type);
+    if (!taskCodes.has(x.task_id)) taskCodes.set(x.task_id, new Map());
+    taskCodes.get(x.task_id)!.set(type, val);
+  }
+
   const rows: Grid = [];
   for (const k of tasks) {
     if (!reportIds.has(k.proj_id)) continue;
@@ -174,6 +195,7 @@ export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData
       c ? c.budget : null, c ? c.actual : null, n(k.target_work_qty), aw,
       CONSTRAINT[k.cstr_type] ?? (k.cstr_type || null), d(xerDate(k.cstr_date)),
       CONSTRAINT[k.cstr_type2] ?? (k.cstr_type2 || null), d(xerDate(k.cstr_date2)),
+      ...codeNames.map((c) => taskCodes.get(k.task_id)?.get(c) ?? null),
     ]);
   }
 
@@ -186,8 +208,8 @@ export function readXer(bytes: Uint8Array, hoursPerDayDefault = 8): WorkbookData
     const h = hpd.get(s.clndr_id) ?? hoursPerDayDefault;
     predRows.push([pr.task_code, s.task_code, REL[r.pred_type] ?? r.pred_type, round(n(r.lag_hr_cnt) == null ? 0 : n(r.lag_hr_cnt)! / h)]);
   }
-  const header = XER_HEADERS.map((x) => x === '__BL_START__' ? (baselineFound ? 'BL Project Start' : 'Planned Start')
-    : x === '__BL_FINISH__' ? (baselineFound ? 'BL Project Finish' : 'Planned Finish') : x);
+  const header = XER_HEADERS.map((x): string => x === '__BL_START__' ? (baselineFound ? 'BL Project Start' : 'Planned Start')
+    : x === '__BL_FINISH__' ? (baselineFound ? 'BL Project Finish' : 'Planned Finish') : x).concat(codeNames.map((c) => `${CODE_PREFIX}${c}`));
   const projRows: Grid = [['Project ID', 'Project Name', 'Data Date']];
   for (const p of reportProjects) projRows.push([p.proj_short_name, longName.get(p.proj_id) ?? '', d(xerDate(p.last_recalc_date))]);
 

@@ -38,6 +38,8 @@ export interface Activity {
   actualUnits: number | null;
   /** fields whose value could not be read (shown as Invalid) */
   invalid: Partial<Record<FieldKey, string>>;
+  /** P6 activity codes (and other text columns used as codes): code type -> value */
+  codes?: Record<string, string>;
   /** actual dates estimated by the app for a progress entry (not in the P6 file) */
   estimated?: ('as' | 'af')[];
 }

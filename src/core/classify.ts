@@ -13,7 +13,10 @@ export const DIM_LABEL: Record<Dimension, string> = {
   phase: 'Phase', discipline: 'Discipline', building: 'Building', floor: 'Floor', location: 'Location',
 };
 
-export type RuleField = 'Activity ID' | 'WBS Code' | 'WBS Name' | 'Activity Name';
+/** 'Code: <type>' matches a P6 activity code */
+export type RuleField = 'Activity ID' | 'WBS Code' | 'WBS Name' | 'Activity Name' | `Code: ${string}`;
+export const CODE_FIELD = 'Code: ';
+export const codeField = (type: string): RuleField => `Code: ${type}`;
 export type RuleType = 'Starts With' | 'Contains' | 'Equals';
 export const RULE_FIELDS: RuleField[] = ['Activity ID', 'WBS Code', 'WBS Name', 'Activity Name'];
 export const RULE_TYPES: RuleType[] = ['Starts With', 'Contains', 'Equals'];
@@ -49,7 +52,8 @@ function fieldValue(a: Activity, f: RuleField): string {
     case 'Activity ID': return a.id;
     case 'WBS Code': return a.wbs;
     case 'WBS Name': return a.wbsName;
-    default: return a.name;
+    case 'Activity Name': return a.name;
+    default: return f.startsWith(CODE_FIELD) ? a.codes?.[f.slice(CODE_FIELD.length)] ?? '' : a.name;
   }
 }
 
@@ -92,4 +96,13 @@ export function indexOverrides(overrides: Override[]): Map<string, Override> {
 /** How many activities each rule matches (shown next to the rule, like the Excel "Matches" column). */
 export function ruleMatchCounts(acts: Activity[], rules: Rule[]): number[] {
   return rules.map((r) => acts.filter((a) => ruleMatches(r, a)).length);
+}
+
+/** The readable part of a code value: "DIV15 - Mechanical" -> "Mechanical". */
+export const codeLabel = (v: string) => { const i = v.indexOf(' - '); return i > 0 ? v.slice(i + 3).trim() || v : v; };
+
+/** One Equals rule per value of a P6 activity code, giving that dimension the code's description. */
+export function rulesFromCode(acts: Activity[], type: string, dim: Dimension): { rules: Rule[]; values: string[] } {
+  const vals = [...new Set(acts.map((a) => a.codes?.[type]).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  return { rules: vals.map((v) => ({ field: codeField(type), type: 'Equals' as RuleType, text: v, values: { [dim]: codeLabel(v) } })), values: [...new Set(vals.map(codeLabel))] };
 }

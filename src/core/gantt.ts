@@ -7,7 +7,8 @@ import { fromYMD, toYMD, type Day } from './dates';
 import { MONTHS } from './dates';
 import type { Dimension } from './classify';
 
-export type GanttGroupBy = 'wbs' | Dimension | 'none';
+/** 'code:<type>' groups by a P6 activity code */
+export type GanttGroupBy = 'wbs' | Dimension | 'none' | `code:${string}`;
 
 export interface GanttBar {
   row: CalcRow;
@@ -40,7 +41,7 @@ export function toBar(r: CalcRow): GanttBar {
 export function ganttGroups(rows: CalcRow[], by: GanttGroupBy): GanttGroup[] {
   const map = new Map<string, { label: string; bars: GanttBar[] }>();
   for (const r of rows) {
-    const key = by === 'none' ? '' : by === 'wbs' ? r.a.wbs || '-' : r.cls[by];
+    const key = by === 'none' ? '' : by === 'wbs' ? r.a.wbs || '-' : by.startsWith('code:') ? r.a.codes?.[by.slice(5)] || '-' : r.cls[by as Dimension];
     const label = by === 'wbs' ? (r.a.wbsName ? `${r.a.wbsName}` : r.a.wbs || '-') : key;
     if (!map.has(key)) map.set(key, { label, bars: [] });
     map.get(key)!.bars.push(toBar(r));

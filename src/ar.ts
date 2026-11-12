@@ -1235,6 +1235,12 @@ export const AR: Record<string, string> = {
   'Deleted': 'محذوف',
   'Lag changed': 'تغيّر التأخير الزمني',
   'Look-ahead': 'الأعمال القادمة',
+  'Classify from P6 activity codes': 'التصنيف من أكواد الأنشطة في P6',
+  'The file has activity codes. Use one of them to fill a classification field: one rule per code value, placed before the \"General\" rules.': 'الملف فيه أكواد أنشطة (Activity Codes). استخدم واحد منها لتعبئة حقل تصنيف: قاعدة لكل قيمة كود، وتنحط قبل قواعد \"General\".',
+  'Activity code': 'كود النشاط',
+  'fills': 'يعبّي',
+  '- choose -': '- اختر -',
+  '(no value)': '(بدون قيمة)',
 };
 
 type Lookup = (s: string) => string;
